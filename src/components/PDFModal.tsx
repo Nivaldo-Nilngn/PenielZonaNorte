@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { categories } from '../data/categories';
-import { Item } from '../types/Item'; // Certifique-se de que o caminho está correto
+import { Item } from '../types/Item';
 
 interface PDFModalProps {
   show: boolean;
@@ -25,101 +25,115 @@ const PDFModal: React.FC<PDFModalProps> = ({
   setSelectedYear,
 }) => {
 
-  // Função para gerar o PDF
- // Função para gerar o PDF
-const generatePDF = () => {
-  const doc = new jsPDF();
-
-  // Filtrar a lista para o mês e ano selecionados
-  const filteredForSelectedMonth = filteredList.filter(item => {
-    const itemDate = new Date(item.date);
-    const itemMonth = (itemDate.getMonth() + 1).toString().padStart(2, '0'); // Obtém o mês no formato MM
-    const itemYear = itemDate.getFullYear().toString(); // Obtém o ano como string
-
-    // Verifica se o item é do mês e ano selecionado
-    return itemMonth === selectedMonth && itemYear === selectedYear;
-  });
-
-  // Adicionando título centralizado
-  doc.setFontSize(20);
-  doc.text(
-    "Relatório Financeiro Igreja Peniel Zona Norte",
-    doc.internal.pageSize.getWidth() / 2,
-    16,
-    { align: 'center' }
-  );
-
-  // Criando tabela de entradas
-  const incomeData = filteredForSelectedMonth
-    .filter(item => !categories[item.category]?.expense)
-    .map(item => [
-      item.title,
-      `R$ ${item.value.toFixed(2)}`,
-      new Date(item.date).toLocaleDateString('pt-BR'), // Formatando a data corretamente
-    ]);
-
-  doc.autoTable({
-    head: [['Título', 'Valor', 'Data']],
-    body: incomeData,
-    startY: 40,
-    margin: { top: -20 },
-    styles: { cellPadding: 2 },
-    theme: 'striped',
-  });
-
-  // Total de entradas
-  const totalIncome = incomeData.reduce(
-    (total, item) => total + Number(item[1].replace('R$ ', '').replace(',', '.')),
-    0
-  );
-  doc.text(
-    `Total de Receitas: R$ ${totalIncome.toFixed(2)}`,
-    14,
-    doc.previousAutoTable ? doc.previousAutoTable.finalY + 10 : 30
-  );
-
-  // Criando tabela de saídas
-  const expenseData = filteredForSelectedMonth
-    .filter(item => categories[item.category]?.expense)
-    .map(item => [
-      item.title,
-      `R$ ${item.value.toFixed(2)}`,
-      new Date(item.date).toLocaleDateString('pt-BR'),
-    ]);
-
-  doc.autoTable({
-    head: [['Título', 'Valor', 'Data']],
-    body: expenseData,
-    startY: doc.previousAutoTable ? doc.previousAutoTable.finalY + 30 : 50,
-    theme: 'grid',
-    headStyles: { fillColor: [255, 0, 0] },
-    styles: { cellPadding: 2 },
-  });
-
-  // Total de saídas
-  const totalExpense = expenseData.reduce(
-    (total, item) => total + Number(item[1].replace('R$ ', '').replace(',', '.')),
-    0
-  );
-  doc.text(
-    `Total de Despesas: R$ ${totalExpense.toFixed(2)}`,
-    14,
-    doc.previousAutoTable ? doc.previousAutoTable.finalY + 10 : 30
-  );
-
-  // Calculando o balanço
-  const balance = totalIncome - totalExpense;
-
-  // Adicionando o balanço na parte inferior da página
-  const finalY = doc.internal.pageSize.getHeight() - 20;
-  const balanceText = `Balanço: R$ ${balance.toFixed(2)}`;
-
-  doc.text(balanceText, doc.internal.pageSize.getWidth() - 14, finalY, { align: 'right' });
-
-  // Salvar o PDF
-  doc.save(`relatorio_financeiro_${selectedMonth}_${selectedYear}.pdf`);
+   // Mapeamento das categorias para português
+ const categoryTranslations: { [key: string]: string } = {
+  tithe: "Dízimo",
+  offering: "Oferta",
+  specialOffering: "Oferta Especial",
+  billsToPay: "Aluguel",
+  electricity: "Conta de Luz",
+  water: "Conta de Água",
+  internet: "Internet",
+  waterPurchase: "Compra de Água",
+  cleaningProducts: "Produtos de Limpeza",
+  disposableCups: "Copos Descartáveis",
+  genericExpense: "Saída"
 };
 
+  // Função para gerar o PDF
+  const generatePDF = () => {
+    const doc = new jsPDF();
+
+    // Filtrar a lista para o mês e ano selecionados
+    const filteredForSelectedMonth = filteredList.filter(item => {
+      const itemDate = new Date(item.date);
+      const itemMonth = (itemDate.getMonth() + 1).toString().padStart(2, '0');
+      const itemYear = itemDate.getFullYear().toString();
+
+      return itemMonth === selectedMonth && itemYear === selectedYear;
+    });
+
+    // Adicionando título centralizado
+    doc.setFontSize(20);
+    doc.text(
+      "Relatório Financeiro Igreja Peniel Zona Norte",
+      doc.internal.pageSize.getWidth() / 2,
+      16,
+      { align: 'center' }
+    );
+
+    // Criando tabela de entradas
+    const incomeData = filteredForSelectedMonth
+      .filter(item => !categories[item.category]?.expense)
+      .map(item => [
+        item.title,
+        categoryTranslations[item.category] || item.category, // Tradução da categoria
+        `R$ ${item.value.toFixed(2)}`,
+        new Date(item.date).toLocaleDateString('pt-BR'),
+      ]);
+
+    doc.autoTable({
+      head: [['Título', 'Categoria', 'Valor', 'Data']],
+      body: incomeData,
+      startY: 40,
+      margin: { top: -20 },
+      styles: { cellPadding: 2 },
+      theme: 'striped',
+    });
+
+    // Total de entradas
+    const totalIncome = incomeData.reduce(
+      (total, item) => total + Number(item[2].replace('R$ ', '').replace(',', '.')),
+      0
+    );
+    doc.text(
+      `Total de Receitas: R$ ${totalIncome.toFixed(2)}`,
+      14,
+      doc.previousAutoTable ? doc.previousAutoTable.finalY + 10 : 30
+    );
+
+    // Criando tabela de saídas
+    const expenseData = filteredForSelectedMonth
+      .filter(item => categories[item.category]?.expense)
+      .map(item => [
+        item.title,
+        categoryTranslations[item.category] || item.category, // Tradução da categoria
+        `R$ ${item.value.toFixed(2)}`,
+        new Date(item.date).toLocaleDateString('pt-BR'),
+      ]);
+
+    doc.autoTable({
+      head: [['Título', 'Categoria', 'Valor', 'Data']],
+      body: expenseData,
+      startY: doc.previousAutoTable ? doc.previousAutoTable.finalY + 30 : 50,
+      theme: 'grid',
+      headStyles: { fillColor: [255, 0, 0] },
+      styles: { cellPadding: 2 },
+    });
+
+    // Total de saídas
+    const totalExpense = expenseData.reduce(
+      (total, item) => total + Number(item[2].replace('R$ ', '').replace(',', '.')),
+      0
+    );
+    doc.text(
+      `Total de Despesas: R$ ${totalExpense.toFixed(2)}`,
+      14,
+      doc.previousAutoTable ? doc.previousAutoTable.finalY + 10 : 30
+    );
+
+    // Calculando o balanço
+    const balance = totalIncome - totalExpense;
+
+    // Adicionando o balanço na parte inferior da página
+    const finalY = doc.internal.pageSize.getHeight() - 20;
+    const balanceText = `Balanço: R$ ${balance.toFixed(2)}`;
+
+    doc.text(balanceText, doc.internal.pageSize.getWidth() - 14, finalY, { align: 'right' });
+
+    // Salvar o PDF
+    doc.save(`relatorio_financeiro_${selectedMonth}_${selectedYear}.pdf`);
+  };
 
   if (!show) return null;
 
@@ -164,7 +178,7 @@ const ModalContent = styled.div`
   text-align: center;
 
   h2 {
-    margin-bottom: 20px; /* Espaçamento abaixo do título */
+    margin-bottom: 20px;
   }
 `;
 
@@ -174,7 +188,7 @@ const Input = styled.input`
   border: 1px solid #ccc;
   border-radius: 5px;
   width: 100%;
-  box-sizing: border-box; /* Inclui padding e borda no tamanho total */
+  box-sizing: border-box;
 `;
 
 const Button = styled.button`

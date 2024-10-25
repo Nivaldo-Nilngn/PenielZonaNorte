@@ -5,16 +5,15 @@ import { categories } from '../data/categories';
 
 type Props = {
   item: Item;
+  onEdit: () => void;
+  onDelete: () => void;
 }
 
-export const TableItem = ({ item }: Props) => {
-  // Obtém a categoria correspondente ao item
+export const TableItem = ({ item, onEdit, onDelete }: Props) => {
   const category = categories[item.category];
-
-  // Verifica se a categoria existe
-  const categoryColor = category ? category.color : "#000"; // Cor padrão se a categoria não existir
-  const categoryTitle = category ? category.title : "Desconhecida"; // Título padrão se a categoria não existir
-  const valueColor = category && category.expense ? 'red' : 'green'; // Define a cor com base na categoria
+  const categoryColor = category ? category.color : "#000";
+  const categoryTitle = category ? category.title : "Desconhecida";
+  const valueColor = category && category.expense ? 'red' : 'green';
 
   return (
     <TableLine>
@@ -29,6 +28,10 @@ export const TableItem = ({ item }: Props) => {
         <Value color={valueColor}>
           R$ {item.value}
         </Value>
+      </TableColumn>
+      <TableColumn>
+        <ActionButton onClick={onEdit}>✏️</ActionButton>
+        <ActionButton onClick={onDelete}>🗑️</ActionButton>
       </TableColumn>
     </TableLine>
   );
@@ -50,4 +53,17 @@ const Category = styled.div<{ color: string }>`
 
 const Value = styled.div<{ color: string }>`
   color: ${(props) => props.color};
+`;
+
+const ActionButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  margin: 0 5px;
+  color: #888;
+
+  &:hover {
+    color: #000;
+  }
 `;

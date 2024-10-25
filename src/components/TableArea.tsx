@@ -4,9 +4,12 @@ import { TableItem } from '../components/TableItem';
 
 type Props = {
   list: Item[];
+  onEdit: (item: Item) => void;
+  onDelete: (item: Item) => void;
+  actionsEnabled?: boolean; // Propriedade para controlar a habilitação das ações
 };
 
-export const TableArea = ({ list }: Props) => {
+export const TableArea = ({ list, onEdit, onDelete, actionsEnabled = false }: Props) => {
   return (
     <Table>
       <thead>
@@ -15,12 +18,33 @@ export const TableArea = ({ list }: Props) => {
           <TableHeadColumn width={130}>Categoria</TableHeadColumn>
           <TableHeadColumn>Título</TableHeadColumn>
           <TableHeadColumn width={150}>Valor</TableHeadColumn>
+          <TableHeadColumn width={100}>Ações</TableHeadColumn>
         </tr>
       </thead>
       <tbody>
-        {list.map((item, index) => (
-          <TableItem key={index} item={item} />
-        ))}
+        {list.length === 0 ? (
+          <tr>
+            <td colSpan={5} style={{ textAlign: 'center' }}>
+              Nenhum item encontrado.
+            </td>
+          </tr>
+        ) : (
+          list.map((item, index) => (
+            <TableItem 
+              key={index} 
+              item={item} 
+              onEdit={actionsEnabled ? () => onEdit(item) : () => {}} // Passando uma função vazia
+              onDelete={actionsEnabled ? () => onDelete(item) : () => {}} // Passando uma função vazia
+            />
+          ))
+        )}
+        {!actionsEnabled && (
+          <tr>
+            <td colSpan={5} style={{ textAlign: 'center', color: '#999' }}>
+              Edição e exclusão de itens estão desabilitadas no momento.
+            </td>
+          </tr>
+        )}
       </tbody>
     </Table>
   );

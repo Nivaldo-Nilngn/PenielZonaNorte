@@ -8,8 +8,19 @@ type Props = {
   items: Item[];
 };
 
-const formatDate = (date: Date): string => {
-  return date.toLocaleDateString('pt-BR');
+ // Mapeamento das categorias para português
+ const categoryTranslations: { [key: string]: string } = {
+  tithe: "Dízimo",
+  offering: "Oferta",
+  specialOffering: "Oferta Especial",
+  billsToPay: "Aluguel",
+  electricity: "Conta de Luz",
+  water: "Conta de Água",
+  internet: "Internet",
+  waterPurchase: "Compra de Água",
+  cleaningProducts: "Produtos de Limpeza",
+  disposableCups: "Copos Descartáveis",
+  genericExpense: "Saída"
 };
 
 
@@ -40,12 +51,16 @@ const Graphs = ({ items }: Props) => {
     setSelectedItem(entry.name);
   };
 
+  const handleClickOutside = () => {
+    setSelectedItem(null); // Reseta a seleção ao clicar fora
+  };
+
   const filteredItems = selectedItem 
     ? items.filter(item => categories[item.category]?.title === selectedItem) 
-    : [];
+    : items; // Mostra todos os itens quando nenhum está selecionado
 
   return (
-    <Container>
+    <Container onClick={handleClickOutside}>
       <h2>Gráficos de Gastos e Entradas</h2>
       
       <GraphsContainer>
@@ -54,11 +69,11 @@ const Graphs = ({ items }: Props) => {
           <PieChart width={400} height={400}>
             <Pie
               data={incomeData}
-              cx={200}
-              cy={200}
+              cx="50%"
+              cy="50%"
               labelLine={false}
               label={entry => `${entry.name} (${entry.value})`}
-              outerRadius={80}
+              outerRadius={100}  // Ajuste do tamanho
               fill="#8884d8"
               dataKey="value"
               onClick={handleClick}
@@ -77,11 +92,11 @@ const Graphs = ({ items }: Props) => {
           <PieChart width={400} height={400}>
             <Pie
               data={expenseData}
-              cx={200}
-              cy={200}
+              cx="50%"
+              cy="50%"
               labelLine={false}
               label={entry => `${entry.name} (${entry.value})`}
-              outerRadius={80}
+              outerRadius={100}  // Ajuste do tamanho
               fill="#8884d8"
               dataKey="value"
               onClick={handleClick}
@@ -96,23 +111,27 @@ const Graphs = ({ items }: Props) => {
         </GraphSection>
       </GraphsContainer>
 
-      {selectedItem && (
+      {filteredItems.length > 0 && (
         <TableContainer>
-          <h4>Valores para: {selectedItem}</h4>
+          <h4>Valores {selectedItem ? `para: ${selectedItem}` : 'de todos os itens'}</h4>
           <StyledTable>
             <thead>
               <tr>
+              <th>Data</th>
+              <th>Categoria</th>
                 <th>Título</th>
                 <th>Valor</th>
-                <th>Data</th>
+                
               </tr>
             </thead>
             <tbody>
               {filteredItems.map((item, index) => (
                 <tr key={index}>
+                <td>{item.date.toLocaleDateString('pt-BR')}</td>
+                <td>{categoryTranslations[item.category] || item.category}</td>
                   <td>{item.title}</td>
                   <td>R$ {item.value}</td>
-                  <td>{item.date.toLocaleDateString('pt-BR')}</td>
+                 
                 </tr>
               ))}
             </tbody>
@@ -126,15 +145,22 @@ const Graphs = ({ items }: Props) => {
 // Estilização
 const Container = styled.div`
   margin: 20px;
+  text-align: center;  // Centraliza os gráficos
 `;
 
 const GraphsContainer = styled.div`
   display: flex;
-  justify-content: space-around;
+  justify-content: center;  // Centraliza os gráficos no desktop
+  flex-direction: column;   // No mobile, empilha os gráficos
+  @media(min-width: 768px) {
+    flex-direction: row;  // No desktop, exibe os gráficos lado a lado
+  }
 `;
 
 const GraphSection = styled.div`
-  width: 45%;
+  width: 100%;
+  max-width: 400px;  // Limita o tamanho máximo do gráfico
+  margin: 20px auto;  // Centraliza os gráficos
   text-align: center;
 `;
 

@@ -31,11 +31,12 @@ const App = () => {
         snapshot.forEach((childSnapshot) => {
             const childData = childSnapshot.val();
             data.push({
-                date: new Date(childData.date),
-                category: childData.category,
-                title: childData.title,
-                value: childData.value,
-            });
+              date: new Date(new Date(childData.date).getTime() + 3 * 60 * 60 * 1000), // Adiciona 3 horas
+              category: childData.category,
+              title: childData.title,
+              value: childData.value,
+          });
+          
         });
         setList(data);
         console.log("Dados carregados:", data);
@@ -82,7 +83,23 @@ const App = () => {
 
     // Lógica para salvar no Firebase
   };
+// Função para editar um item
+const handleEditItem = (updatedItem: Item) => {
+  const newList = list.map(item => 
+    item.title === updatedItem.title ? updatedItem : item
+  );
+  setList(newList);
 
+  // Lógica para atualizar no Firebase se necessário
+};
+
+// Função para excluir um item
+const handleDeleteItem = (itemToDelete: Item) => {
+  const newList = list.filter(item => item.title !== itemToDelete.title);
+  setList(newList);
+
+  // Lógica para excluir no Firebase se necessário
+};
   return (
     <Container>
       <Header>
@@ -102,7 +119,7 @@ const App = () => {
       <PDFModal
         show={showModal}
         onClose={() => setShowModal(false)}
-        filteredList={filteredList} // Dados filtrados passados para o modal
+        filteredList={filteredList} 
         selectedMonth={selectedMonth}
         selectedYear={selectedYear}
         setSelectedMonth={setSelectedMonth}
@@ -120,7 +137,11 @@ const App = () => {
         {showGraphs ? (
           <Graphs items={filteredList} />
         ) : (
-          <TableArea list={filteredList} />
+          <TableArea 
+            list={filteredList} 
+            onEdit={handleEditItem} // Passando a função de edição
+            onDelete={handleDeleteItem} // Passando a função de exclusão
+          />
         )}
       </Body>
     </Container>
