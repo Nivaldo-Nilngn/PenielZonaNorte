@@ -56,7 +56,7 @@ const PDFModal: React.FC<PDFModalProps> = ({
     // Adicionando título centralizado
     doc.setFontSize(20);
     doc.text(
-      "Relatório Financeiro Igreja Peniel Zona Norte",
+      "RELATÓRIO FINANCEIRO - IGREJA PENIEL ZONA NORTE",
       doc.internal.pageSize.getWidth() / 2,
       16,
       { align: 'center' }
