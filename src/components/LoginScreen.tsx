@@ -51,6 +51,7 @@ const Container = styled.div`
   align-items: center;
   justify-content: center;
   height: 100vh;
+  padding: 20px;
   background: linear-gradient(135deg, #2c3e50, #34495e);
 `;
 
@@ -62,12 +63,30 @@ const LoginBox = styled.div`
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   border-radius: 10px;
   text-align: center;
+  animation: fadeIn 1s ease;
+
+  /* Responsividade para telas menores */
+  @media (max-width: 600px) {
+    padding: 30px 20px;
+    max-width: 100%;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
 `;
 
 const Title = styled.h2`
   margin-bottom: 20px;
   color: #333;
-  font-family: 'Georgia', serif; /* Fonte mais elegante */
+  font-family: 'Georgia', serif;
+  font-size: 24px;
+
+  /* Ajuste de responsividade */
+  @media (max-width: 600px) {
+    font-size: 20px;
+  }
 `;
 
 const Input = styled.input`
@@ -77,27 +96,53 @@ const Input = styled.input`
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 16px;
+  transition: border-color 0.3s;
+
+  &:focus {
+    border-color: #2980b9;
+    outline: none;
+  }
+
+  /* Responsividade */
+  @media (max-width: 600px) {
+    padding: 10px;
+  }
 `;
 
 const ActionButton = styled.button`
   width: 100%;
   padding: 12px;
-  background-color: #2980b9; /* Cor azul mais suave */
+  background-color: #2980b9;
   color: #fff;
   border: none;
   border-radius: 5px;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, transform 0.3s;
 
   &:hover {
-    background-color: #1a5276; /* Azul mais escuro ao passar o mouse */
+    background-color: #1a5276;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  /* Responsividade */
+  @media (max-width: 600px) {
+    padding: 10px;
   }
 `;
 
 const ErrorMessage = styled.p`
   color: red;
   font-size: 14px;
+  margin-bottom: 10px;
+
+  /* Ajuste de responsividade */
+  @media (max-width: 600px) {
+    font-size: 12px;
+  }
 `;
 
 export default LoginScreen;
