@@ -21,58 +21,115 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ show, onClose, on
   return (
     <ModalOverlay>
       <ModalContent>
-        <h2>Confirmar Exclusão</h2>
-        <p>Você tem certeza de que deseja excluir este item?</p>
-        <input 
-          type="password" 
-          placeholder="Senha do administrador" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)} 
+        <Title>Confirmar Exclusão</Title>
+        <Message>Tem certeza de que deseja excluir este item?</Message>
+        <StyledInput
+          type="password"
+          placeholder="Senha do administrador"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
         <ButtonWrapper>
-          <Button onClick={onClose}>Cancelar</Button>
-          <Button onClick={handleConfirm}>Confirmar</Button>
+          <CancelButton onClick={onClose}>Cancelar</CancelButton>
+          <ConfirmButton onClick={handleConfirm}>Confirmar</ConfirmButton>
         </ButtonWrapper>
       </ModalContent>
     </ModalOverlay>
   );
 };
 
+// Estilos personalizados
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
+  animation: fadeIn 0.3s ease-in-out;
 `;
 
 const ModalContent = styled.div`
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
+  background: #f8f9fa;
+  padding: 30px;
+  width: 90%;
+  max-width: 400px;
+  border-radius: 12px;
+  box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.2);
   text-align: center;
+  transform: scale(0.9);
+  animation: scaleUp 0.3s ease-in-out forwards;
+
+  @keyframes scaleUp {
+    to {
+      transform: scale(1);
+    }
+  }
+`;
+
+const Title = styled.h2`
+  font-size: 22px;
+  color: #333;
+  margin-bottom: 15px;
+  font-weight: 600;
+`;
+
+const Message = styled.p`
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 20px;
+`;
+
+const StyledInput = styled.input`
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+
+  &:focus {
+    border-color: #007bff;
+    outline: none;
+  }
 `;
 
 const ButtonWrapper = styled.div`
-  margin-top: 20px;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
+  gap: 10px;
 `;
 
 const Button = styled.button`
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 16px;
   cursor: pointer;
-  background-color: #007bff;
+  transition: background-color 0.3s ease;
+`;
+
+const CancelButton = styled(Button)`
+  background-color: #ff6b6b;
   color: white;
+  border: none;
 
   &:hover {
-    background-color: #0056b3;
+    background-color: #ff4a4a;
+  }
+`;
+
+const ConfirmButton = styled(Button)`
+  background-color: #4caf50;
+  color: white;
+  border: none;
+
+  &:hover {
+    background-color: #388e3c;
   }
 `;
 
