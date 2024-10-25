@@ -57,8 +57,8 @@ const Container = styled.div`
 
 const LoginBox = styled.div`
   background-color: rgba(255, 255, 255, 0.9);
-  padding: 40px;
-  width: 100%;
+  padding: 30px;
+  width: 90%;
   max-width: 400px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   border-radius: 10px;
@@ -67,8 +67,7 @@ const LoginBox = styled.div`
 
   /* Responsividade para telas menores */
   @media (max-width: 600px) {
-    padding: 30px 20px;
-    max-width: 100%;
+    padding: 20px;
   }
 
   @keyframes fadeIn {
@@ -90,9 +89,9 @@ const Title = styled.h2`
 `;
 
 const Input = styled.input`
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
+  width: calc(100% - 24px);
+  padding: 10px;
+  margin: 8px 0;
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 16px;
@@ -105,7 +104,8 @@ const Input = styled.input`
 
   /* Responsividade */
   @media (max-width: 600px) {
-    padding: 10px;
+    padding: 8px;
+    font-size: 14px;
   }
 `;
 
@@ -131,6 +131,7 @@ const ActionButton = styled.button`
   /* Responsividade */
   @media (max-width: 600px) {
     padding: 10px;
+    font-size: 15px;
   }
 `;
 
