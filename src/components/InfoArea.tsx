@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 import { formatCurrentMonth } from '../helpers/dateFilter';
 import { ResumeItem } from "./ResumeItem";
 
@@ -10,8 +10,7 @@ type Props = {
 }
 
 export const InfoArea = ({ currentMonth, onMonthChange, income, expense }: Props) => {
-
-  // Função para mudar para o mês anterior
+  // Funções para mudar o mês
   const handlePrevMonth = () => {
     let [year, month] = currentMonth.split('-');
     let currentDate = new Date(parseInt(year), parseInt(month) - 1, 1);
@@ -19,7 +18,6 @@ export const InfoArea = ({ currentMonth, onMonthChange, income, expense }: Props
     onMonthChange(`${currentDate.getFullYear()}-${currentDate.getMonth() + 1}`);
   };
 
-  // Função para mudar para o próximo mês
   const handleNextMonth = () => {
     let [year, month] = currentMonth.split('-');
     let currentDate = new Date(parseInt(year), parseInt(month) - 1, 1);
@@ -35,11 +33,11 @@ export const InfoArea = ({ currentMonth, onMonthChange, income, expense }: Props
         <MonthArrow onClick={handleNextMonth}>➡️</MonthArrow>
       </MonthArea>
       <ResumeArea>
-        <ResumeItem title='Receitas' value={income} />
-        <ResumeItem title='Despesas' value={expense} />
+        <ResumeItem title='Receitas' value={income} /> {/* Passando como number */}
+        <ResumeItem title='Despesas' value={expense} /> {/* Passando como number */}
         <ResumeItem
           title='Balanço'
-          value={income - expense}
+          value={income - expense} // Passando como number
           color={(income - expense) < 0 ? 'red' : 'green'}
         />
       </ResumeArea>

@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { Item } from '../types/Item';
 import { categories } from '../data/categories';
 import styled from 'styled-components';
-// import { newDateAdjusted } from '../helpers/dateFilter';
 import { db } from '../firebaseConfig'; // Importa o Realtime Database
 import { ref, push } from 'firebase/database'; // Funções para salvar no Realtime Database
+import { v4 as uuidv4 } from 'uuid';
 
 type Props = {
-  onAdd: (item: Item) => void; 
+  onAdd: (item: Item) => void;
 };
 
 export const InputArea = ({ onAdd }: Props) => {
@@ -17,19 +17,15 @@ export const InputArea = ({ onAdd }: Props) => {
   const [valueField, setValueField] = useState(0);
 
   let categoryKeys: string[] = Object.keys(categories);
-  
+
   // Função para salvar no Realtime Database
   const saveToRealtimeDatabase = async (item: Item) => {
     try {
-      // Referência para onde os dados serão armazenados
       const itemRef = ref(db, 'financialData');
-      // Cria um novo objeto com a data como string
       const itemWithDate = {
         ...item,
-        date: new Date(item.date).toISOString(), // Se você estiver armazenando no formato ISO
+        date: new Date(item.date).toISOString(), // Armazena a data em formato ISO
       };
-      
-      // Push para adicionar um novo item
       await push(itemRef, itemWithDate);
       console.log("Lançamento salvo no Realtime Database");
     } catch (error) {
@@ -39,45 +35,44 @@ export const InputArea = ({ onAdd }: Props) => {
 
   const handleAddEvent = () => {
     let errors: string[] = [];
-    
-    if(isNaN(new Date(dateField).getTime())) {
+
+    if (isNaN(new Date(dateField).getTime())) {
       errors.push('Data inválida!');
     }
-    if(!categoryKeys.includes(categoryField)) {
+    if (!categoryKeys.includes(categoryField)) {
       errors.push('Categoria inválida!');
     }
-    if(titleField === '') {
+    if (titleField === '') {
       errors.push('Título vazio!');
     }
-    if(valueField <= 0) {
+    if (valueField <= 0) {
       errors.push('Valor inválido!');
     }
-    
-    if(errors.length > 0) {
+
+    if (errors.length > 0) {
       alert(errors.join("\n"));
     } else {
       const newItem: Item = {
+        id: uuidv4(), // Gera um ID único
         date: new Date(dateField), // Armazena como objeto Date
         category: categoryField,
         title: titleField,
-        value: valueField
+        value: valueField,
       };
 
       onAdd(newItem); // Atualiza a UI local
       saveToRealtimeDatabase(newItem); // Salva no Realtime Database
       clearFields();
     }
-};
-
-
+  };
 
   const clearFields = () => {
     setDateField('');
     setCategoryField('');
     setTitleField('');
     setValueField(0);
-  }
-  
+  };
+
   return (
     <Container>
       <InputLabel>
@@ -87,12 +82,10 @@ export const InputArea = ({ onAdd }: Props) => {
       <InputLabel>
         <InputTitle>Categoria</InputTitle>
         <Select value={categoryField} onChange={e => setCategoryField(e.target.value)}>
-          <>
-            <option></option>
-            {categoryKeys.map((key, index) => (
-              <option key={index} value={key}>{categories[key].title}</option>
-            ))}
-          </>
+          <option value="">Selecione uma categoria</option>
+          {categoryKeys.map((key, index) => (
+            <option key={index} value={key}>{categories[key].title}</option>
+          ))}
         </Select>
       </InputLabel>
       <InputLabel>
@@ -107,29 +100,29 @@ export const InputArea = ({ onAdd }: Props) => {
         <InputTitle>&nbsp;</InputTitle>
         <Button onClick={handleAddEvent}>Adicionar</Button>
       </InputLabel>
-    </Container> 
+    </Container>
   );
 };
 
 const InputTitle = styled.div`
-    font-weight: bold;
-    margin-bottom: 5px;
+  font-weight: bold;
+  margin-bottom: 5px;
 `;
 
 const Input = styled.input`
-    width: 100%;
-    height: 30px;
-    padding: 0 5px;
-    border: 1px solid lightblue;
-    border-radius: 5px;
+  width: 100%;
+  height: 30px;
+  padding: 0 5px;
+  border: 1px solid lightblue;
+  border-radius: 5px;
 `;
 
 const Select = styled.select`
-    width: 100%;
-    height: 30px;
-    padding: 0 5px;
-    border: 1px solid lightblue;
-    border-radius: 5px;
+  width: 100%;
+  height: 30px;
+  padding: 0 5px;
+  border: 1px solid lightblue;
+  border-radius: 5px;
 `;
 
 const Container = styled.div`
@@ -140,39 +133,39 @@ const Container = styled.div`
   margin-top: 20px;
   display: flex;
   align-items: center;
-  flex-wrap: wrap; /* Permite que os itens sejam realocados em telas menores */
+  flex-wrap: wrap;
   
   @media (max-width: 768px) {
-    flex-direction: column; /* Layout em coluna para telas menores */
+    flex-direction: column;
   }
 `;
 
 const InputLabel = styled.label`
-    flex: 1;
-    margin: 10px;
+  flex: 1;
+  margin: 10px;
 
-    @media (max-width: 768px) {
-      width: 100%; /* Cada item ocupa 100% da largura no celular */
-      margin: 5px 0; /* Reduz o espaço para um design mais compacto */
-    }
+  @media (max-width: 768px) {
+    width: 100%;
+    margin: 5px 0;
+  }
 `;
 
 const Button = styled.button`
-    width: 100%;
-    height: 30px;
-    padding: 0 5px;
-    border: 1px solid lightblue;
-    border-radius: 5px;
-    background-color: lightblue;
-    color: black;
-    cursor: pointer;
+  width: 100%;
+  height: 30px;
+  padding: 0 5px;
+  border: 1px solid lightblue;
+  border-radius: 5px;
+  background-color: #2980b9;
+  color: white;
+  cursor: pointer;
 
-    &:hover {
-        background-color: blue;
-        color: white;
-    }
-    
-    @media (max-width: 768px) {
-      height: 40px; /* Um botão um pouco maior para facilitar o toque em telas menores */
-    }
+  &:hover {
+    background-color: #1a5276;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  @media (max-width: 768px) {
+    height: 40px;
+  }
 `;

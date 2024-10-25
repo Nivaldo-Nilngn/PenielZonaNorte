@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis } from 'recharts';
 import { Item } from '../types/Item';
 import { categories } from '../data/categories';
 import styled from 'styled-components';
@@ -8,8 +8,8 @@ type Props = {
   items: Item[];
 };
 
- // Mapeamento das categorias para português
- const categoryTranslations: { [key: string]: string } = {
+// Mapeamento das categorias para português
+const categoryTranslations: { [key: string]: string } = {
   tithe: "Dízimo",
   offering: "Oferta",
   specialOffering: "Oferta Especial",
@@ -23,9 +23,9 @@ type Props = {
   genericExpense: "Saída"
 };
 
-
 const Graphs = ({ items }: Props) => {
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [chartType, setChartType] = useState<'pie' | 'bar'>('pie'); // Estado para o tipo de gráfico
 
   const incomeData = Object.entries(categories)
     .filter(([_, category]) => !category.expense)
@@ -55,59 +55,99 @@ const Graphs = ({ items }: Props) => {
     setSelectedItem(null); // Reseta a seleção ao clicar fora
   };
 
-  const filteredItems = selectedItem 
-    ? items.filter(item => categories[item.category]?.title === selectedItem) 
+  const filteredItems = selectedItem
+    ? items.filter(item => categories[item.category]?.title === selectedItem)
     : items; // Mostra todos os itens quando nenhum está selecionado
+
+  // Função para formatar valores em reais
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
+  };
+
+  // Função para alternar o tipo de gráfico
+  const toggleChartType = () => {
+    setChartType(prevType => (prevType === 'pie' ? 'bar' : 'pie'));
+  };
 
   return (
     <Container onClick={handleClickOutside}>
       <h2>Gráficos de Gastos e Entradas</h2>
-      
+
+      <StyledButton onClick={toggleChartType}>
+        Alternar para Gráfico {chartType === 'pie' ? 'de Barras' : 'de Pizza'}
+      </StyledButton>
+
       <GraphsContainer>
         <GraphSection>
           <h3>Entradas</h3>
-          <PieChart width={400} height={400}>
-            <Pie
-              data={incomeData}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={entry => `${entry.name} (${entry.value})`}
-              outerRadius={100}  // Ajuste do tamanho
-              fill="#8884d8"
-              dataKey="value"
-              onClick={handleClick}
-            >
-              {incomeData.map((entry, index) => (
-                <Cell key={`cell-income-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
+          {chartType === 'pie' ? (
+            <PieChart width={450} height={450}>
+              <Pie
+                data={incomeData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={entry => `(${formatCurrency(entry.value)})`} // Formatação do rótulo
+                outerRadius={100}  // Ajuste do tamanho
+                fill="#8884d8"
+                dataKey="value"
+                onClick={handleClick}
+              >
+                {incomeData.map((entry, index) => (
+                  <Cell key={`cell-income-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          ) : (
+            <BarChart width={400} height={400} data={incomeData}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="value" fill="#8884d8">
+                {incomeData.map((entry, index) => (
+                  <Cell key={`cell-income-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          )}
         </GraphSection>
 
         <GraphSection>
           <h3>Saídas</h3>
-          <PieChart width={400} height={400}>
-            <Pie
-              data={expenseData}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={entry => `${entry.name} (${entry.value})`}
-              outerRadius={100}  // Ajuste do tamanho
-              fill="#8884d8"
-              dataKey="value"
-              onClick={handleClick}
-            >
-              {expenseData.map((entry, index) => (
-                <Cell key={`cell-expense-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
+          {chartType === 'pie' ? (
+            <PieChart width={450} height={450}>
+              <Pie
+                data={expenseData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={entry => `(${formatCurrency(entry.value)})`} // Formatação do rótulo
+                outerRadius={100}  // Ajuste do tamanho
+                fill="#8884d8"
+                dataKey="value"
+                onClick={handleClick}
+              >
+                {expenseData.map((entry, index) => (
+                  <Cell key={`cell-expense-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          ) : (
+            <BarChart width={400} height={400} data={expenseData}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="value" fill="#8884d8">
+                {expenseData.map((entry, index) => (
+                  <Cell key={`cell-expense-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          )}
         </GraphSection>
       </GraphsContainer>
 
@@ -117,21 +157,19 @@ const Graphs = ({ items }: Props) => {
           <StyledTable>
             <thead>
               <tr>
-              <th>Data</th>
-              <th>Categoria</th>
+                <th>Data</th>
+                <th>Categoria</th>
                 <th>Título</th>
                 <th>Valor</th>
-                
               </tr>
             </thead>
             <tbody>
               {filteredItems.map((item, index) => (
                 <tr key={index}>
-                <td>{item.date.toLocaleDateString('pt-BR')}</td>
-                <td>{categoryTranslations[item.category] || item.category}</td>
+                  <td>{item.date.toLocaleDateString('pt-BR')}</td>
+                  <td>{categoryTranslations[item.category] || item.category}</td>
                   <td>{item.title}</td>
-                  <td>R$ {item.value}</td>
-                 
+                  <td>{formatCurrency(item.value)}</td>
                 </tr>
               ))}
             </tbody>
@@ -146,6 +184,22 @@ const Graphs = ({ items }: Props) => {
 const Container = styled.div`
   margin: 20px;
   text-align: center;  // Centraliza os gráficos
+`;
+
+const StyledButton = styled.button`
+  background-color: #2980b9;
+  color: white; /* Cor do texto */
+  border: none; /* Remove a borda */
+  border-radius: 5px; /* Bordas arredondadas */
+  padding: 10px 20px; /* Espaçamento interno */
+  font-size: 16px; /* Tamanho da fonte */
+  cursor: pointer; /* Cursor pointer ao passar o mouse */
+
+  /* Efeito de hover */
+  &:hover {
+    background-color: #1a5276;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
 `;
 
 const GraphsContainer = styled.div`

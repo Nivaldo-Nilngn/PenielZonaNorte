@@ -39,7 +39,7 @@ export const TableArea = ({ list, onDelete, actionsEnabled = true }: Props) => {
         {!actionsEnabled && (
           <tr>
             <td colSpan={5} style={{ textAlign: 'center', color: '#999' }}>
-              A exclusão de itens estão desabilitadas no momento.
+              A exclusão de itens está desabilitada no momento.
             </td>
           </tr>
         )}

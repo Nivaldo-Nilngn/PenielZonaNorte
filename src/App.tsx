@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { Item } from './types/Item';
 import { db, auth } from './firebaseConfig';
-import { ref, onValue, remove, get } from 'firebase/database'; // Adicione a função 'get' aqui
+import { ref, onValue, remove, get } from 'firebase/database';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import LoginScreen from './components/LoginScreen';
 import { getCurrentMonth, filterListByMonth } from './helpers/dateFilter';
@@ -25,6 +25,8 @@ const App = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(currentMonth.split('-')[1]);
   const [selectedYear, setSelectedYear] = useState(currentMonth.split('-')[0]);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
 
   // Verifica se o usuário está autenticado
   useEffect(() => {
@@ -43,16 +45,17 @@ const App = () => {
         snapshot.forEach((childSnapshot) => {
           const childData = childSnapshot.val();
           data.push({
+            id: childSnapshot.key!,
             date: new Date(new Date(childData.date).getTime() + 3 * 60 * 60 * 1000),
             category: childData.category,
             title: childData.title,
-            value: childData.value,
+            value: parseFloat(childData.value), // Mantenha como número
           });
         });
         setList(data);
       });
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated]);  
 
   // Filtra a lista com base no mês e ano selecionados
   useEffect(() => {
@@ -92,30 +95,28 @@ const App = () => {
     setList(prevList => [...prevList, item]);
   };
 
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
-
   const handleDeleteClick = (item: Item) => {
     setItemToDelete(item);
     setShowConfirmationModal(true);
   };
 
+  // Função para verificar a senha de administrador e remover o item
   const handleDeleteItem = async (password: string) => {
     const adminRef = ref(db, 'admin/password');
-    
-    // Obtenha a senha do Firebase uma única vez
+
+    // Obtém a senha de administrador do Firebase
     const snapshot = await get(adminRef);
     const adminPassword = snapshot.val();
 
     if (password === adminPassword) {
       if (itemToDelete) {
-        const itemRef = ref(db, `financialData/${itemToDelete.title}`); // Verifique se 'title' é único
+        const itemRef = ref(db, `financialData/${itemToDelete.id}`);
         try {
           await remove(itemRef);
           console.log('Item excluído com sucesso.');
-          
+
           // Atualiza a lista local
-          setList(prevList => prevList.filter(item => item.title !== itemToDelete.title));
+          setList(prevList => prevList.filter(item => item.id !== itemToDelete.id));
         } catch (error) {
           console.error('Erro ao excluir item:', error);
         }
@@ -242,7 +243,7 @@ const ToggleButton = styled.button`
   cursor: pointer;
 
   &:hover {
-    background-color: #1a5276; /* Azul mais escuro ao passar o mouse */
+    background-color: #1a5276;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 

@@ -25,7 +25,7 @@ export const TableItem = ({ item, onDelete }: Props) => {
       <TableColumn>{item.title}</TableColumn>
       <TableColumn>
         <Value color={valueColor}>
-          R$ {item.value}
+          {item.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} {/* Formatação para moeda BRL */}
         </Value>
       </TableColumn>
       <TableColumn>

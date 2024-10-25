@@ -1,6 +1,7 @@
 // types/Item.ts
 export type Item = {
-  date: Date; // ou string, dependendo de como você está armazenando
+  id: string;          // Adicione esta linha
+  date: Date;
   category: string;
   title: string;
   value: number;
