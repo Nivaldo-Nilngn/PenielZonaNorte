@@ -1,5 +1,5 @@
-// firebaseConfig.js
 import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database"; // Importa o Realtime Database
 
 const firebaseConfig = {
@@ -13,4 +13,5 @@ const firebaseConfig = {
 
 // Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app); // Exporta a autenticação para login
 export const db = getDatabase(app); // Exporta o banco de dados para ser utilizado

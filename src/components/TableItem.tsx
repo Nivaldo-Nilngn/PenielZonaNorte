@@ -5,11 +5,10 @@ import { categories } from '../data/categories';
 
 type Props = {
   item: Item;
-  onEdit: () => void;
   onDelete: () => void;
 }
 
-export const TableItem = ({ item, onEdit, onDelete }: Props) => {
+export const TableItem = ({ item, onDelete }: Props) => {
   const category = categories[item.category];
   const categoryColor = category ? category.color : "#000";
   const categoryTitle = category ? category.title : "Desconhecida";
@@ -30,7 +29,6 @@ export const TableItem = ({ item, onEdit, onDelete }: Props) => {
         </Value>
       </TableColumn>
       <TableColumn>
-        <ActionButton onClick={onEdit}>✏️</ActionButton>
         <ActionButton onClick={onDelete}>🗑️</ActionButton>
       </TableColumn>
     </TableLine>

@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { Item } from './types/Item';
-import { db } from './firebaseConfig';
-import { ref, onValue } from 'firebase/database';
+import { db, auth } from './firebaseConfig';
+import { ref, onValue, remove, get } from 'firebase/database'; // Adicione a função 'get' aqui
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import LoginScreen from './components/LoginScreen';
 import { getCurrentMonth, filterListByMonth } from './helpers/dateFilter';
 import { TableArea } from "./components/TableArea";
 import { InfoArea } from './components/InfoArea';
 import { InputArea } from './components/InputArea';
-import Graphs from './components/Graphs'; 
-import { categories } from './data/categories'; 
+import Graphs from './components/Graphs';
+import { categories } from './data/categories';
 import PDFModal from './components/PDFModal';
+import ConfirmationModal from './components/ConfirmationModal';
 
 const App = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [list, setList] = useState<Item[]>([]);
   const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
   const [filteredList, setFilteredList] = useState<Item[]>([]);
@@ -19,87 +23,115 @@ const App = () => {
   const [expense, setExpense] = useState(0);
   const [showGraphs, setShowGraphs] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState(currentMonth.split('-')[1]); // Mês atual
-  const [selectedYear, setSelectedYear] = useState(currentMonth.split('-')[0]); // Ano atual
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth.split('-')[1]);
+  const [selectedYear, setSelectedYear] = useState(currentMonth.split('-')[0]);
 
-  // Função para carregar os dados do Firebase
+  // Verifica se o usuário está autenticado
   useEffect(() => {
-    const itemsRef = ref(db, 'financialData');
-    
-    onValue(itemsRef, (snapshot) => {
-        const data: Item[] = [];
-        snapshot.forEach((childSnapshot) => {
-            const childData = childSnapshot.val();
-            data.push({
-              date: new Date(new Date(childData.date).getTime() + 3 * 60 * 60 * 1000), // Adiciona 3 horas
-              category: childData.category,
-              title: childData.title,
-              value: childData.value,
-          });
-          
-        });
-        setList(data);
-        console.log("Dados carregados:", data);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsAuthenticated(!!user);
     });
+    return () => unsubscribe();
   }, []);
 
-  // Filtrar a lista com base no mês e ano selecionados
+  // Obtém dados financeiros do Firebase
+  useEffect(() => {
+    if (isAuthenticated) {
+      const itemsRef = ref(db, 'financialData');
+      onValue(itemsRef, (snapshot) => {
+        const data: Item[] = [];
+        snapshot.forEach((childSnapshot) => {
+          const childData = childSnapshot.val();
+          data.push({
+            date: new Date(new Date(childData.date).getTime() + 3 * 60 * 60 * 1000),
+            category: childData.category,
+            title: childData.title,
+            value: childData.value,
+          });
+        });
+        setList(data);
+      });
+    }
+  }, [isAuthenticated]);
+
+  // Filtra a lista com base no mês e ano selecionados
   useEffect(() => {
     const filtered = filterListByMonth(list, `${selectedYear}-${selectedMonth}`);
-    setFilteredList(filtered); // Somente filtra os dados
+    setFilteredList(filtered);
   }, [list, selectedMonth, selectedYear]);
 
-  // Calcular a renda e a despesa totais
+  // Calcula a receita e a despesa totais
   useEffect(() => {
     let incomeCount = 0;
     let expenseCount = 0;
 
-    for (let i in filteredList) {
-      const value = filteredList[i].value || 0;
-      const isExpense = categories[filteredList[i].category]?.expense;
-
-      if (isExpense) {
-        expenseCount += value;
-      } else {
-        incomeCount += value;
-      }
-    }
+    filteredList.forEach(item => {
+      const value = item.value || 0;
+      const isExpense = categories[item.category]?.expense;
+      if (isExpense) expenseCount += value;
+      else incomeCount += value;
+    });
 
     setIncome(incomeCount);
     setExpense(expenseCount);
   }, [filteredList]);
 
-  // Função para mudar o mês sem modificar ou salvar dados
+  const handleLogout = () => {
+    signOut(auth).catch((error) => {
+      console.error("Erro ao fazer logout:", error);
+    });
+  };
+
   const handleMonthChange = (newMonth: string) => {
     setCurrentMonth(newMonth);
-    setSelectedMonth(newMonth.split('-')[1]); // Atualiza o mês selecionado
-    setSelectedYear(newMonth.split('-')[0]); // Atualiza o ano selecionado
+    setSelectedMonth(newMonth.split('-')[1]);
+    setSelectedYear(newMonth.split('-')[0]);
   };
 
-  // Função para adicionar novos itens manualmente
   const handleAddItem = (item: Item) => {
-    let newList = [...list, item];
-    setList(newList);
-
-    // Lógica para salvar no Firebase
+    setList(prevList => [...prevList, item]);
   };
-// Função para editar um item
-const handleEditItem = (updatedItem: Item) => {
-  const newList = list.map(item => 
-    item.title === updatedItem.title ? updatedItem : item
-  );
-  setList(newList);
 
-  // Lógica para atualizar no Firebase se necessário
-};
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
 
-// Função para excluir um item
-const handleDeleteItem = (itemToDelete: Item) => {
-  const newList = list.filter(item => item.title !== itemToDelete.title);
-  setList(newList);
+  const handleDeleteClick = (item: Item) => {
+    setItemToDelete(item);
+    setShowConfirmationModal(true);
+  };
 
-  // Lógica para excluir no Firebase se necessário
-};
+  const handleDeleteItem = async (password: string) => {
+    const adminRef = ref(db, 'admin/password');
+    
+    // Obtenha a senha do Firebase uma única vez
+    const snapshot = await get(adminRef);
+    const adminPassword = snapshot.val();
+
+    if (password === adminPassword) {
+      if (itemToDelete) {
+        const itemRef = ref(db, `financialData/${itemToDelete.title}`); // Verifique se 'title' é único
+        try {
+          await remove(itemRef);
+          console.log('Item excluído com sucesso.');
+          
+          // Atualiza a lista local
+          setList(prevList => prevList.filter(item => item.title !== itemToDelete.title));
+        } catch (error) {
+          console.error('Erro ao excluir item:', error);
+        }
+      }
+    } else {
+      alert("Senha incorreta. Exclusão não permitida.");
+    }
+
+    setShowConfirmationModal(false); // Fecha o modal após a verificação
+    setItemToDelete(null); // Limpa o item a ser excluído
+  };
+
+  if (!isAuthenticated) {
+    return <LoginScreen />;
+  }
+
   return (
     <Container>
       <Header>
@@ -112,6 +144,7 @@ const handleDeleteItem = (itemToDelete: Item) => {
             <ToggleButton onClick={() => setShowModal(true)}>
               Gerar PDF
             </ToggleButton>
+            <LogoutButton onClick={handleLogout}>Sair</LogoutButton>
           </ButtonsWrapper>
         </HeaderContent>
       </Header>
@@ -119,7 +152,7 @@ const handleDeleteItem = (itemToDelete: Item) => {
       <PDFModal
         show={showModal}
         onClose={() => setShowModal(false)}
-        filteredList={filteredList} 
+        filteredList={filteredList}
         selectedMonth={selectedMonth}
         selectedYear={selectedYear}
         setSelectedMonth={setSelectedMonth}
@@ -137,24 +170,26 @@ const handleDeleteItem = (itemToDelete: Item) => {
         {showGraphs ? (
           <Graphs items={filteredList} />
         ) : (
-          <TableArea 
-            list={filteredList} 
-            onEdit={handleEditItem} // Passando a função de edição
-            onDelete={handleDeleteItem} // Passando a função de exclusão
-          />
+          <TableArea list={filteredList} onDelete={handleDeleteClick} />
         )}
       </Body>
+
+      <ConfirmationModal 
+        show={showConfirmationModal} 
+        onClose={() => setShowConfirmationModal(false)} 
+        onConfirm={handleDeleteItem} 
+      />
     </Container>
   );
 };
 
-// Componentes Styled
+// Estilização dos componentes
 const Container = styled.div``;
 
 const Header = styled.div`
-  background-color: darkblue;
+  background: linear-gradient(135deg, #2c3e50, #34495e);
   width: 100%;
-  height: 150px;
+  height: auto;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -199,7 +234,7 @@ const ButtonsWrapper = styled.div`
 const ToggleButton = styled.button`
   margin-right: 10px;
   padding: 10px 20px;
-  background-color: #007BFF;
+  background-color: #2980b9;
   color: #FFF;
   border: none;
   border-radius: 5px;
@@ -207,7 +242,7 @@ const ToggleButton = styled.button`
   cursor: pointer;
 
   &:hover {
-    background-color: #0056b3;
+    background-color: #1a5276; /* Azul mais escuro ao passar o mouse */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 
@@ -223,10 +258,20 @@ const ToggleButton = styled.button`
   }
 `;
 
+const LogoutButton = styled(ToggleButton)`
+  background-color: #dc3545;
+
+  &:hover {
+    background-color: #c82333;
+  }
+
+  &:active {
+    background-color: #bd2130;
+  }
+`;
+
 const Body = styled.div`
-  margin: auto;
-  max-width: 980px;
-  margin-bottom: 50px;
+  padding: 20px;
 `;
 
 export default App;

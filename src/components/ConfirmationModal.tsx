@@ -1,24 +1,37 @@
 // components/ConfirmationModal.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 
 interface ConfirmationModalProps {
   show: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (password: string) => void; // Alterado para receber a senha
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ show, onClose, onConfirm }) => {
+  const [password, setPassword] = useState('');
+
   if (!show) return null;
+
+  const handleConfirm = () => {
+    onConfirm(password); // Passa a senha para a função de confirmação
+    setPassword(''); // Limpa a senha após a confirmação
+  };
 
   return (
     <ModalOverlay>
       <ModalContent>
         <h2>Confirmar Exclusão</h2>
         <p>Você tem certeza de que deseja excluir este item?</p>
+        <input 
+          type="password" 
+          placeholder="Senha do administrador" 
+          value={password} 
+          onChange={(e) => setPassword(e.target.value)} 
+        />
         <ButtonWrapper>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button onClick={onConfirm}>Confirmar</Button>
+          <Button onClick={handleConfirm}>Confirmar</Button>
         </ButtonWrapper>
       </ModalContent>
     </ModalOverlay>

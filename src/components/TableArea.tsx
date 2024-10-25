@@ -4,12 +4,11 @@ import { TableItem } from '../components/TableItem';
 
 type Props = {
   list: Item[];
-  onEdit: (item: Item) => void;
   onDelete: (item: Item) => void;
   actionsEnabled?: boolean; // Propriedade para controlar a habilitação das ações
 };
 
-export const TableArea = ({ list, onEdit, onDelete, actionsEnabled = false }: Props) => {
+export const TableArea = ({ list, onDelete, actionsEnabled = false }: Props) => {
   return (
     <Table>
       <thead>
@@ -32,8 +31,7 @@ export const TableArea = ({ list, onEdit, onDelete, actionsEnabled = false }: Pr
           list.map((item, index) => (
             <TableItem 
               key={index} 
-              item={item} 
-              onEdit={actionsEnabled ? () => onEdit(item) : () => {}} // Passando uma função vazia
+              item={item}
               onDelete={actionsEnabled ? () => onDelete(item) : () => {}} // Passando uma função vazia
             />
           ))
@@ -41,7 +39,7 @@ export const TableArea = ({ list, onEdit, onDelete, actionsEnabled = false }: Pr
         {!actionsEnabled && (
           <tr>
             <td colSpan={5} style={{ textAlign: 'center', color: '#999' }}>
-              Edição e exclusão de itens estão desabilitadas no momento.
+              A exclusão de itens estão desabilitadas no momento.
             </td>
           </tr>
         )}
