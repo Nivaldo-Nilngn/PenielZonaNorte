@@ -136,7 +136,7 @@ const App = () => {
     <Container>
       <Header>
         <HeaderContent>
-          <HeaderText>Igreja Peniel Zona Norte</HeaderText>
+          <HeaderText>IGREJA PENIEL ZONA NORTE</HeaderText>
           <ButtonsWrapper>
             <ToggleButton onClick={() => setShowGraphs(!showGraphs)}>
               {showGraphs ? "Voltar" : "Ver Gráficos"}
