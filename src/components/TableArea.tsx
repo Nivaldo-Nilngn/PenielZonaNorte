@@ -8,7 +8,7 @@ type Props = {
   actionsEnabled?: boolean; // Propriedade para controlar a habilitação das ações
 };
 
-export const TableArea = ({ list, onDelete, actionsEnabled = false }: Props) => {
+export const TableArea = ({ list, onDelete, actionsEnabled = true }: Props) => {
   return (
     <Table>
       <thead>
