@@ -109,23 +109,7 @@ export const InputArea = ({ onAdd }: Props) => {
       </InputLabel>
     </Container> 
   );
-}
-
-// Estilização dos componentes
-const Container = styled.div`
-  background-color: #FFF;
-  box-shadow: 0px 0px 5px #CCC;
-  border-radius: 10px;
-  padding: 20px;
-  margin-top: 20px;
-  display: flex;
-  align-items: center;
-`;
-
-const InputLabel = styled.label`
-    flex: 1;
-    margin: 10px;
-`;
+};
 
 const InputTitle = styled.div`
     font-weight: bold;
@@ -148,6 +132,31 @@ const Select = styled.select`
     border-radius: 5px;
 `;
 
+const Container = styled.div`
+  background-color: #FFF;
+  box-shadow: 0px 0px 5px #CCC;
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap; /* Permite que os itens sejam realocados em telas menores */
+  
+  @media (max-width: 768px) {
+    flex-direction: column; /* Layout em coluna para telas menores */
+  }
+`;
+
+const InputLabel = styled.label`
+    flex: 1;
+    margin: 10px;
+
+    @media (max-width: 768px) {
+      width: 100%; /* Cada item ocupa 100% da largura no celular */
+      margin: 5px 0; /* Reduz o espaço para um design mais compacto */
+    }
+`;
+
 const Button = styled.button`
     width: 100%;
     height: 30px;
@@ -157,8 +166,13 @@ const Button = styled.button`
     background-color: lightblue;
     color: black;
     cursor: pointer;
+
     &:hover {
         background-color: blue;
         color: white;
+    }
+    
+    @media (max-width: 768px) {
+      height: 40px; /* Um botão um pouco maior para facilitar o toque em telas menores */
     }
 `;
