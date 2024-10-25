@@ -23,7 +23,7 @@ const LoginScreen = () => {
   return (
     <Container>
       <LoginBox>
-        <Title>Igreja Peniel Zona Norte</Title>
+        <Title>IGREJA PENIEL ZONA NORTE</Title>
         {error && <ErrorMessage>{error}</ErrorMessage>}
         <Input
           type="email"
