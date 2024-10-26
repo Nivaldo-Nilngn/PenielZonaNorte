@@ -13,6 +13,7 @@ import Graphs from './components/Graphs';
 import { categories } from './data/categories';
 import PDFModal from './components/PDFModal';
 import ConfirmationModal from './components/ConfirmationModal';
+import logo from './assets/logoBranco.png'; // Importação da imagem do logo
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -49,7 +50,7 @@ const App = () => {
             date: new Date(new Date(childData.date).getTime() + 3 * 60 * 60 * 1000),
             category: childData.category,
             title: childData.title,
-            value: parseFloat(childData.value), // Mantenha como número
+            value: parseFloat(childData.value),
           });
         });
         setList(data);
@@ -137,17 +138,18 @@ const App = () => {
     <Container>
       <Header>
         <HeaderContent>
+          <Logo src={logo} alt="Logo" />
           <HeaderText>IGREJA PENIEL ZONA NORTE</HeaderText>
-          <ButtonsWrapper>
-            <ToggleButton onClick={() => setShowGraphs(!showGraphs)}>
-              {showGraphs ? "Voltar" : "Ver Gráficos"}
-            </ToggleButton>
-            <ToggleButton onClick={() => setShowModal(true)}>
-              Gerar PDF
-            </ToggleButton>
-            <LogoutButton onClick={handleLogout}>Sair</LogoutButton>
-          </ButtonsWrapper>
         </HeaderContent>
+        <ButtonsWrapper>
+          <ToggleButton onClick={() => setShowGraphs(!showGraphs)}>
+            {showGraphs ? "Voltar" : "Ver Gráficos"}
+          </ToggleButton>
+          <ToggleButton onClick={() => setShowModal(true)}>
+            Gerar PDF
+          </ToggleButton>
+          <LogoutButton onClick={handleLogout}>Sair</LogoutButton>
+        </ButtonsWrapper>
       </Header>
 
       <PDFModal
@@ -192,7 +194,7 @@ const Header = styled.div`
   width: 100%;
   height: auto;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   padding: 20px;
   box-sizing: border-box;
@@ -200,31 +202,30 @@ const Header = styled.div`
 
 const HeaderContent = styled.div`
   display: flex;
-  flex-direction: column;
   align-items: center;
+`;
 
-  @media (max-width: 768px) {
-    width: 100%;
-  }
+const Logo = styled.img`
+  width: 60px;
+  height: 60px;
+  margin-right: 10px;
 `;
 
 const HeaderText = styled.h1`
   margin: 0;
   padding: 0;
   color: #FFF;
-  text-align: center;
-  padding-top: 10px;
   font-size: 28px;
 
   @media (max-width: 768px) {
     font-size: 24px;
+    display: none;
   }
 `;
 
 const ButtonsWrapper = styled.div`
   display: flex;
   flex-direction: row;
-  margin-top: 20px;
 
   @media (max-width: 768px) {
     flex-direction: column;
