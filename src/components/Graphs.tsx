@@ -8,7 +8,6 @@ type Props = {
   items: Item[];
 };
 
-// Mapeamento das categorias para português
 const categoryTranslations: { [key: string]: string } = {
   tithe: "Dízimo",
   offering: "Oferta",
@@ -25,7 +24,7 @@ const categoryTranslations: { [key: string]: string } = {
 
 const Graphs = ({ items }: Props) => {
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
-  const [chartType, setChartType] = useState<'pie' | 'bar'>('pie'); // Estado para o tipo de gráfico
+  const [chartType, setChartType] = useState<'pie' | 'bar'>('pie');
 
   const incomeData = Object.entries(categories)
     .filter(([_, category]) => !category.expense)
@@ -52,19 +51,17 @@ const Graphs = ({ items }: Props) => {
   };
 
   const handleClickOutside = () => {
-    setSelectedItem(null); // Reseta a seleção ao clicar fora
+    setSelectedItem(null);
   };
 
   const filteredItems = selectedItem
     ? items.filter(item => categories[item.category]?.title === selectedItem)
-    : items; // Mostra todos os itens quando nenhum está selecionado
+    : items;
 
-  // Função para formatar valores em reais
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
   };
 
-  // Função para alternar o tipo de gráfico
   const toggleChartType = () => {
     setChartType(prevType => (prevType === 'pie' ? 'bar' : 'pie'));
   };
@@ -81,14 +78,14 @@ const Graphs = ({ items }: Props) => {
         <GraphSection>
           <h3>Entradas</h3>
           {chartType === 'pie' ? (
-            <PieChart width={400} height={400}>
+            <PieChart width={320} height={320}>
               <Pie
                 data={incomeData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={entry => `(${formatCurrency(entry.value)})`} // Formatação do rótulo
-                outerRadius={100}  // Ajuste do tamanho
+                label={entry => `(${formatCurrency(entry.value)})`}
+                outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
                 onClick={handleClick}
@@ -101,7 +98,7 @@ const Graphs = ({ items }: Props) => {
               <Legend />
             </PieChart>
           ) : (
-            <BarChart width={400} height={400} data={incomeData}>
+            <BarChart width={320} height={320} data={incomeData}>
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
@@ -117,14 +114,14 @@ const Graphs = ({ items }: Props) => {
         <GraphSection>
           <h3>Saídas</h3>
           {chartType === 'pie' ? (
-            <PieChart width={400} height={400}>
+            <PieChart width={320} height={320}>
               <Pie
                 data={expenseData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={entry => `(${formatCurrency(entry.value)})`} // Formatação do rótulo
-                outerRadius={100}  // Ajuste do tamanho
+                label={entry => `(${formatCurrency(entry.value)})`}
+                outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
                 onClick={handleClick}
@@ -137,7 +134,7 @@ const Graphs = ({ items }: Props) => {
               <Legend />
             </PieChart>
           ) : (
-            <BarChart width={400} height={400} data={expenseData}>
+            <BarChart width={320} height={320} data={expenseData}>
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
@@ -203,8 +200,8 @@ const StyledButton = styled.button`
 
 const GraphsContainer = styled.div`
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   flex-direction: column;
   @media(min-width: 768px) {
     flex-direction: row;
@@ -213,9 +210,11 @@ const GraphsContainer = styled.div`
 
 const GraphSection = styled.div`
   width: 100%;
-  max-width: 400px;
+  max-width: 320px;
   margin: 20px;
   text-align: center;
+  display: flex;
+  justify-content: center;
 `;
 
 const TableContainer = styled.div`
