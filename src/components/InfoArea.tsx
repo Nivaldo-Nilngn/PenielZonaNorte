@@ -52,13 +52,24 @@ const Container = styled.div`
   padding: 20px;
   margin-top: 5px;
   display: flex;
-  align-items: center;
+  flex-direction: column; /* Altera a direção dos filhos para coluna */
+  align-items: center; /* Centraliza os itens horizontalmente */
+  
+  @media (min-width: 768px) {
+    flex-direction: row; /* Altera para linha em telas maiores */
+    justify-content: space-between; /* Espaça os itens uniformemente */
+  }
 `;
 
 const MonthArea = styled.div`
   flex: 1;
   display: flex;
   align-items: center;
+  justify-content: center; /* Centraliza o conteúdo horizontalmente */
+
+  @media (min-width: 768px) {
+    justify-content: flex-start; /* Alinha à esquerda em telas maiores */
+  }
 `;
 
 const MonthArrow = styled.div`
@@ -76,4 +87,12 @@ const MonthTitle = styled.div`
 const ResumeArea = styled.div`
   flex: 2;
   display: flex;
+  flex-wrap: wrap; /* Permite que os itens quebrem linha se não houver espaço */
+  justify-content: center; /* Centraliza os itens no eixo principal */
+  margin-top: 10px; /* Adiciona espaço acima no modo mobile */
+
+  @media (min-width: 768px) {
+    margin-top: 0; /* Remove o espaço acima em telas maiores */
+    justify-content: flex-start; /* Alinha à esquerda em telas maiores */
+  }
 `;
