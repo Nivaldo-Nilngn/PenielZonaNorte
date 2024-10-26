@@ -10,7 +10,6 @@ type Props = {
 }
 
 export const InfoArea = ({ currentMonth, onMonthChange, income, expense }: Props) => {
-  // Funções para mudar o mês
   const handlePrevMonth = () => {
     let [year, month] = currentMonth.split('-');
     let currentDate = new Date(parseInt(year), parseInt(month) - 1, 1);
@@ -89,6 +88,7 @@ const ResumeArea = styled.div`
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  gap: 20px; /* Espaço horizontal e vertical entre os itens */
   margin-top: 10px;
 
   @media (min-width: 768px) {
@@ -97,11 +97,13 @@ const ResumeArea = styled.div`
   }
 `;
 
-// Novo componente estilizado para adicionar margem entre os itens
+// Ajuste da margem entre os itens
 const StyledResumeItem = styled(ResumeItem)`
   margin: 10px 20px;
-
+  
   @media (min-width: 768px) {
     margin: 0 20px;
   }
 `;
+
+export default InfoArea;
