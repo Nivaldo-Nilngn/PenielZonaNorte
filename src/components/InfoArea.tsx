@@ -15,14 +15,14 @@ export const InfoArea = ({ currentMonth, onMonthChange, income, expense }: Props
     let [year, month] = currentMonth.split('-');
     let currentDate = new Date(parseInt(year), parseInt(month) - 1, 1);
     currentDate.setMonth(currentDate.getMonth() - 1);
-    onMonthChange(`${currentDate.getFullYear()}-${currentDate.getMonth() + 1}`);
+    onMonthChange(`${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`);
   };
 
   const handleNextMonth = () => {
     let [year, month] = currentMonth.split('-');
     let currentDate = new Date(parseInt(year), parseInt(month) - 1, 1);
     currentDate.setMonth(currentDate.getMonth() + 1);
-    onMonthChange(`${currentDate.getFullYear()}-${currentDate.getMonth() + 1}`);
+    onMonthChange(`${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`);
   };
 
   return (
@@ -33,11 +33,11 @@ export const InfoArea = ({ currentMonth, onMonthChange, income, expense }: Props
         <MonthArrow onClick={handleNextMonth}>➡️</MonthArrow>
       </MonthArea>
       <ResumeArea>
-        <ResumeItem title='Receitas' value={income} /> {/* Passando como number */}
-        <ResumeItem title='Despesas' value={expense} /> {/* Passando como number */}
-        <ResumeItem
+        <StyledResumeItem title='Receitas' value={income} />
+        <StyledResumeItem title='Despesas' value={expense} />
+        <StyledResumeItem
           title='Balanço'
-          value={income - expense} // Passando como number
+          value={income - expense}
           color={(income - expense) < 0 ? 'red' : 'green'}
         />
       </ResumeArea>
@@ -52,12 +52,12 @@ const Container = styled.div`
   padding: 20px;
   margin-top: 5px;
   display: flex;
-  flex-direction: column; /* Altera a direção dos filhos para coluna */
-  align-items: center; /* Centraliza os itens horizontalmente */
+  flex-direction: column;
+  align-items: center;
   
   @media (min-width: 768px) {
-    flex-direction: row; /* Altera para linha em telas maiores */
-    justify-content: space-between; /* Espaça os itens uniformemente */
+    flex-direction: row;
+    justify-content: space-between;
   }
 `;
 
@@ -65,10 +65,10 @@ const MonthArea = styled.div`
   flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center; /* Centraliza o conteúdo horizontalmente */
+  justify-content: center;
 
   @media (min-width: 768px) {
-    justify-content: flex-start; /* Alinha à esquerda em telas maiores */
+    justify-content: flex-start;
   }
 `;
 
@@ -87,12 +87,21 @@ const MonthTitle = styled.div`
 const ResumeArea = styled.div`
   flex: 2;
   display: flex;
-  flex-wrap: wrap; /* Permite que os itens quebrem linha se não houver espaço */
-  justify-content: center; /* Centraliza os itens no eixo principal */
-  margin-top: 10px; /* Adiciona espaço acima no modo mobile */
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 10px;
 
   @media (min-width: 768px) {
-    margin-top: 0; /* Remove o espaço acima em telas maiores */
-    justify-content: flex-start; /* Alinha à esquerda em telas maiores */
+    margin-top: 0;
+    justify-content: flex-start;
+  }
+`;
+
+// Novo componente estilizado para adicionar margem entre os itens
+const StyledResumeItem = styled(ResumeItem)`
+  margin: 10px 20px;
+
+  @media (min-width: 768px) {
+    margin: 0 20px;
   }
 `;
