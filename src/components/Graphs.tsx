@@ -206,6 +206,7 @@ const GraphsContainer = styled.div`
   display: flex;
   justify-content: center;  // Centraliza os gráficos no desktop
   flex-direction: column;   // No mobile, empilha os gráficos
+  align-items: center; // Centraliza verticalmente
   @media(min-width: 768px) {
     flex-direction: row;  // No desktop, exibe os gráficos lado a lado
   }
@@ -214,7 +215,7 @@ const GraphsContainer = styled.div`
 const GraphSection = styled.div`
   width: 100%;
   max-width: 400px;  // Limita o tamanho máximo do gráfico
-  margin: 20px auto;  // Centraliza os gráficos
+  margin: 20px;  // Centraliza os gráficos sem usar auto
   text-align: center;
 `;
 
@@ -224,6 +225,8 @@ const TableContainer = styled.div`
   max-width: 600px; // Limita a largura máxima da tabela
   margin-left: auto; // Centraliza horizontalmente
   margin-right: auto; // Centraliza horizontalmente
+  display: flex; // Adicione isso para garantir que a tabela ocupe espaço
+  justify-content: center; // Centraliza a tabela
 `;
 
 const StyledTable = styled.table`
