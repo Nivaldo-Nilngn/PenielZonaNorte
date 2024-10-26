@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
+import logo from '../assets/logoPeniel.png'; // Importando a imagem do logo
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -23,7 +24,8 @@ const LoginScreen = () => {
   return (
     <Container>
       <LoginBox>
-        <Title>IGREJA PENIEL ZONA NORTE</Title>
+        <Logo src={logo} alt="Logo da Igreja Peniel" />
+        <Title>Zona Norte</Title>
         {error && <ErrorMessage>{error}</ErrorMessage>}
         <Input
           type="email"
@@ -51,99 +53,78 @@ const Container = styled.div`
   align-items: center;
   justify-content: center;
   height: 100vh;
-  padding: 20px;
   background: linear-gradient(135deg, #2c3e50, #34495e);
 `;
 
 const LoginBox = styled.div`
   background-color: rgba(255, 255, 255, 0.9);
-  padding: 30px;
-  width: 90%;
+  padding: 30px;  /* Ajuste o padding para centralizar melhor os elementos */
+  width: 100%;margin: 20px;
   max-width: 400px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   border-radius: 10px;
   text-align: center;
-  animation: fadeIn 1s ease;
-
-  /* Responsividade para telas menores */
-  @media (max-width: 600px) {
-    padding: 20px;
-  }
-
+  animation: fadeIn 0.5s; /* Animação para a entrada */
+  
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
+`;
+
+const Logo = styled.img`
+  width: 180px; /* Ajuste do tamanho do logo para que fique proporcional */
+  margin-bottom: 10px; /* Reduzido para mais proximidade */
 `;
 
 const Title = styled.h2`
   margin-bottom: 20px;
   color: #333;
-  font-family: 'Georgia', serif;
-  font-size: 24px;
-
-  /* Ajuste de responsividade */
-  @media (max-width: 600px) {
-    font-size: 20px;
-  }
+  font-family: 'Georgia', serif; /* Fonte mais elegante */
 `;
 
 const Input = styled.input`
-  width: calc(100% - 24px);
-  padding: 10px;
-  margin: 8px 0;
+  width: 90%;
+  padding: 10px; /* Reduzido para um tamanho mais adequado */
+  margin: 10px 0;
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 16px;
-  transition: border-color 0.3s;
+  transition: border 0.3s, box-shadow 0.3s;
 
   &:focus {
-    border-color: #2980b9;
+    border: 1px solid #2980b9; /* Borda azul ao focar */
     outline: none;
-  }
-
-  /* Responsividade */
-  @media (max-width: 600px) {
-    padding: 8px;
-    font-size: 14px;
+    box-shadow: 0 0 5px rgba(41, 128, 185, 0.5); /* Efeito de sombra ao focar */
   }
 `;
 
 const ActionButton = styled.button`
   width: 100%;
   padding: 12px;
-  background-color: #2980b9;
+  background-color: #2980b9; /* Cor azul mais suave */
   color: #fff;
   border: none;
   border-radius: 5px;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.3s;
+  transition: background-color 0.3s;
 
   &:hover {
-    background-color: #1a5276;
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-
-  /* Responsividade */
-  @media (max-width: 600px) {
-    padding: 10px;
-    font-size: 15px;
+    background-color: #1a5276; /* Azul mais escuro ao passar o mouse */
   }
 `;
 
 const ErrorMessage = styled.p`
   color: red;
   font-size: 14px;
-  margin-bottom: 10px;
-
-  /* Ajuste de responsividade */
-  @media (max-width: 600px) {
-    font-size: 12px;
-  }
+  margin-bottom: 10px; /* Adicionando espaço abaixo da mensagem de erro */
 `;
 
 export default LoginScreen;
