@@ -81,7 +81,7 @@ const Graphs = ({ items }: Props) => {
         <GraphSection>
           <h3>Entradas</h3>
           {chartType === 'pie' ? (
-            <PieChart width={450} height={450}>
+            <PieChart width={400} height={400}>
               <Pie
                 data={incomeData}
                 cx="50%"
@@ -117,7 +117,7 @@ const Graphs = ({ items }: Props) => {
         <GraphSection>
           <h3>Saídas</h3>
           {chartType === 'pie' ? (
-            <PieChart width={450} height={450}>
+            <PieChart width={400} height={400}>
               <Pie
                 data={expenseData}
                 cx="50%"
@@ -220,6 +220,10 @@ const GraphSection = styled.div`
 
 const TableContainer = styled.div`
   margin-top: 20px;
+  width: 100%; // Permite que a tabela ocupe a largura total
+  max-width: 600px; // Limita a largura máxima da tabela
+  margin-left: auto; // Centraliza horizontalmente
+  margin-right: auto; // Centraliza horizontalmente
 `;
 
 const StyledTable = styled.table`
@@ -236,7 +240,7 @@ const StyledTable = styled.table`
     background-color: #f2f2f2;
   }
 
-  tr:nth-child(even) {
+tr:nth-child(even) {
     background-color: #f9f9f9;
   }
 
