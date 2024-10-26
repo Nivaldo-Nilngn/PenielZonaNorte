@@ -150,7 +150,7 @@ const Graphs = ({ items }: Props) => {
 
       {filteredItems.length > 0 && (
         <TableContainer>
-          <h4>Valores {selectedItem ? `para: ${selectedItem}` : 'de todos os itens'}</h4>
+          <h4>{selectedItem ? `Valores para: ${selectedItem}` : 'Valores de todos os itens'}</h4>
           <StyledTable>
             <thead>
               <tr>
@@ -209,12 +209,12 @@ const GraphsContainer = styled.div`
 `;
 
 const GraphSection = styled.div`
+  display: flex;
+  justify-content: center;
   width: 100%;
   max-width: 320px;
   margin: 20px;
   text-align: center;
-  display: flex;
-  justify-content: center;
 `;
 
 const TableContainer = styled.div`
@@ -223,18 +223,18 @@ const TableContainer = styled.div`
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
-  display: flex;
-  justify-content: center;
+  text-align: center;
 `;
 
 const StyledTable = styled.table`
   width: 100%;
   border-collapse: collapse;
+  margin-top: 10px;
 
   th, td {
     border: 1px solid #ddd;
     padding: 8px;
-    text-align: left;
+    text-align: center;
   }
 
   th {
