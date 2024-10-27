@@ -21,7 +21,7 @@ export const InputArea = ({ onAdd }: Props) => {
   // Função para salvar no Realtime Database
   const saveToRealtimeDatabase = async (item: Item) => {
     try {
-      const itemRef = ref(db, 'financialData');
+      const itemRef = ref(db, 'PenielZonaNote');
       const itemWithDate = {
         ...item,
         date: new Date(item.date).toISOString(), // Armazena a data em formato ISO

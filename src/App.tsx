@@ -40,7 +40,7 @@ const App = () => {
   // Obtém dados financeiros do Firebase
   useEffect(() => {
     if (isAuthenticated) {
-      const itemsRef = ref(db, 'financialData');
+      const itemsRef = ref(db, 'PenielZonaNote');
       onValue(itemsRef, (snapshot) => {
         const data: Item[] = [];
         snapshot.forEach((childSnapshot) => {
@@ -111,7 +111,7 @@ const App = () => {
 
     if (password === adminPassword) {
       if (itemToDelete) {
-        const itemRef = ref(db, `financialData/${itemToDelete.id}`);
+        const itemRef = ref(db, `PenielZonaNote/${itemToDelete.id}`);
         try {
           await remove(itemRef);
           console.log('Item excluído com sucesso.');
