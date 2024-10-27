@@ -3,11 +3,12 @@ import { Item } from '../types/Item';
 import { categories } from '../data/categories';
 import styled from 'styled-components';
 import { db } from '../firebaseConfig'; // Importa o Realtime Database
-import { ref, push } from 'firebase/database'; // Funções para salvar no Realtime Database
+import { ref, push, get } from 'firebase/database'; // Funções para salvar e buscar dados no Realtime Database
 import { v4 as uuidv4 } from 'uuid';
 
 type Props = {
   onAdd: (item: Item) => void;
+  dbName: string; // Adicione esta linha
 };
 
 export const InputArea = ({ onAdd }: Props) => {
@@ -20,13 +21,40 @@ export const InputArea = ({ onAdd }: Props) => {
 
   // Função para salvar no Realtime Database
   const saveToRealtimeDatabase = async (item: Item) => {
+    const uid = localStorage.getItem('uid'); // Recupera o UID do localStorage
+    if (!uid) {
+      console.error("UID não encontrado.");
+      return;
+    }
+
+    // Nomes dos bancos de dados
+    const dbNames = ['PenielZonaNote', 'PenielIbura', 'PenielIpsep'];
+    let userDatabase: string | null = null;
+
+    // Verifica em qual banco de dados o UID pertence
+    for (const dbName of dbNames) {
+      const dbRef = ref(db, `${dbName}/usuarios/${uid}`);
+      const snapshot = await get(dbRef);
+
+      if (snapshot.exists()) {
+        userDatabase = dbName; // Banco de dados correspondente encontrado
+        break;
+      }
+    }
+
+    if (!userDatabase) {
+      console.error("Banco de dados correspondente ao UID não encontrado.");
+      return;
+    }
+
+    const itemRef = ref(db, userDatabase); // Define o caminho usando o banco de dados correspondente
+    const itemWithDate = {
+      ...item,
+      date: new Date(item.date).toISOString(), // Armazena a data em formato ISO
+    };
+
     try {
-      const itemRef = ref(db, 'PenielZonaNote');
-      const itemWithDate = {
-        ...item,
-        date: new Date(item.date).toISOString(), // Armazena a data em formato ISO
-      };
-      await push(itemRef, itemWithDate);
+      await push(itemRef, itemWithDate); // Salva o item diretamente no banco de dados
       console.log("Lançamento salvo no Realtime Database");
     } catch (error) {
       console.error("Erro ao salvar no Realtime Database: ", error);
@@ -36,6 +64,7 @@ export const InputArea = ({ onAdd }: Props) => {
   const handleAddEvent = () => {
     let errors: string[] = [];
 
+    // Validação dos campos de entrada
     if (isNaN(new Date(dateField).getTime())) {
       errors.push('Data inválida!');
     }
@@ -54,7 +83,7 @@ export const InputArea = ({ onAdd }: Props) => {
     } else {
       const newItem: Item = {
         id: uuidv4(), // Gera um ID único
-        date: new Date(dateField), // Armazena como objeto Date
+        date: new Date(new Date(dateField).getTime() + 3 * 60 * 60 * 1000),
         category: categoryField,
         title: titleField,
         value: valueField,
@@ -104,6 +133,7 @@ export const InputArea = ({ onAdd }: Props) => {
   );
 };
 
+// Estilização dos componentes
 const InputTitle = styled.div`
   font-weight: bold;
   margin-bottom: 5px;
@@ -134,7 +164,7 @@ const Container = styled.div`
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  
+
   @media (max-width: 768px) {
     flex-direction: column;
   }

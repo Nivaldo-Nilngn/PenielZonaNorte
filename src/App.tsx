@@ -28,62 +28,90 @@ const App = () => {
   const [selectedYear, setSelectedYear] = useState(currentMonth.split('-')[0]);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
+  const [dbName, setDbName] = useState('');
+  const [headerText, setHeaderText] = useState(''); // Novo estado para o texto do cabeçalho
+  const [loading, setLoading] = useState(true); // Estado de carregamento
 
-  // Verifica se o usuário está autenticado
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, user => {
       setIsAuthenticated(!!user);
+      if (user) {
+        localStorage.setItem("uid", user.uid);
+        fetchDatabaseName(user.uid);
+      } else {
+        localStorage.removeItem("uid");
+        setDbName('');
+      }
     });
     return () => unsubscribe();
   }, []);
 
-  // Obtém dados financeiros do Firebase
-  useEffect(() => {
-    if (isAuthenticated) {
-      const itemsRef = ref(db, 'PenielZonaNote');
-      onValue(itemsRef, (snapshot) => {
-        const data: Item[] = [];
-        snapshot.forEach((childSnapshot) => {
-          const childData = childSnapshot.val();
-          data.push({
-            id: childSnapshot.key!,
-            date: new Date(new Date(childData.date).getTime() + 3 * 60 * 60 * 1000),
-            category: childData.category,
-            title: childData.title,
-            value: parseFloat(childData.value),
-          });
+  const fetchDatabaseName = (uid: string) => {
+    const databaseNames = ['PenielZonaNote', 'PenielIbura', 'PenielIpsep'];
+    const churchNames = {
+      PenielZonaNote: 'IGREJA PENIEL ZONA NORTE',
+      PenielIbura: 'IGREJA PENIEL IBURA',
+      PenielIpsep: 'IGREJA PENIEL IPSEP',
+    };
+  
+    databaseNames.forEach(dbName => {
+      const usersRef = ref(db, `${dbName}/usuarios`);
+      onValue(usersRef, snapshot => {
+        snapshot.forEach(childSnapshot => {
+          if (childSnapshot.key === uid) {
+            setDbName(dbName);
+            setHeaderText(churchNames[dbName as keyof typeof churchNames]); // Usar asserção de tipo
+          }
         });
-        setList(data);
       });
-    }
-  }, [isAuthenticated]);  
+    });
+  };  
 
-  // Filtra a lista com base no mês e ano selecionados
+  useEffect(() => {
+    const uid = localStorage.getItem('uid');
+    if (uid && dbName) {
+      fetchData(uid);
+    }
+  }, [dbName]);
+
+  const fetchData = async (uid: string) => {
+    setLoading(true); // Começa o carregamento
+    const itemsRef = ref(db, `${dbName}`);
+    onValue(itemsRef, snapshot => {
+      const data: Item[] = [];
+      snapshot.forEach(childSnapshot => {
+        const childData = childSnapshot.val();
+        data.push({
+          id: childSnapshot.key!,
+          date: new Date(new Date(childData.date).getTime() + 3 * 60 * 60 * 1000),
+          category: childData.category,
+          title: childData.title,
+          value: parseFloat(childData.value),
+        });
+      });
+      setList(data);
+      setLoading(false); // Finaliza o carregamento
+    }, { onlyOnce: true });
+  };
+
   useEffect(() => {
     const filtered = filterListByMonth(list, `${selectedYear}-${selectedMonth}`);
     setFilteredList(filtered);
   }, [list, selectedMonth, selectedYear]);
 
-  // Calcula a receita e a despesa totais
   useEffect(() => {
-    let incomeCount = 0;
-    let expenseCount = 0;
-
-    filteredList.forEach(item => {
-      const value = item.value || 0;
-      const isExpense = categories[item.category]?.expense;
-      if (isExpense) expenseCount += value;
-      else incomeCount += value;
-    });
-
+    const incomeCount = filteredList.reduce((sum, item) => {
+      return sum + (categories[item.category]?.expense ? 0 : item.value || 0);
+    }, 0);
+    const expenseCount = filteredList.reduce((sum, item) => {
+      return sum + (categories[item.category]?.expense ? item.value || 0 : 0);
+    }, 0);
     setIncome(incomeCount);
     setExpense(expenseCount);
   }, [filteredList]);
 
   const handleLogout = () => {
-    signOut(auth).catch((error) => {
-      console.error("Erro ao fazer logout:", error);
-    });
+    signOut(auth).catch(error => console.error("Erro ao fazer logout:", error));
   };
 
   const handleMonthChange = (newMonth: string) => {
@@ -101,37 +129,40 @@ const App = () => {
     setShowConfirmationModal(true);
   };
 
-  // Função para verificar a senha de administrador e remover o item
   const handleDeleteItem = async (password: string) => {
-    const adminRef = ref(db, 'admin/password');
+    if (!dbName || !itemToDelete) return;
 
-    // Obtém a senha de administrador do Firebase
+    const adminRef = ref(db, `${dbName}/admin/password`);
     const snapshot = await get(adminRef);
     const adminPassword = snapshot.val();
 
     if (password === adminPassword) {
-      if (itemToDelete) {
-        const itemRef = ref(db, `PenielZonaNote/${itemToDelete.id}`);
-        try {
-          await remove(itemRef);
-          console.log('Item excluído com sucesso.');
-
-          // Atualiza a lista local
-          setList(prevList => prevList.filter(item => item.id !== itemToDelete.id));
-        } catch (error) {
-          console.error('Erro ao excluir item:', error);
-        }
+      const itemRef = ref(db, `${dbName}/${itemToDelete.id}`);
+      try {
+        await remove(itemRef);
+        setList(prevList => prevList.filter(item => item.id !== itemToDelete.id));
+        console.log('Item excluído com sucesso.');
+      } catch (error) {
+        console.error('Erro ao excluir item:', error);
       }
     } else {
       alert("Senha incorreta. Exclusão não permitida.");
     }
 
-    setShowConfirmationModal(false); // Fecha o modal após a verificação
-    setItemToDelete(null); // Limpa o item a ser excluído
+    setShowConfirmationModal(false);
+    setItemToDelete(null);
   };
 
   if (!isAuthenticated) {
     return <LoginScreen />;
+  }
+
+  if (loading) { // Exibe uma tela de carregamento enquanto 'loading' é verdadeiro
+    return (
+      <LoadingContainer>
+        <LoadingText>Carregando dados...</LoadingText>
+      </LoadingContainer>
+    );
   }
 
   return (
@@ -139,7 +170,7 @@ const App = () => {
       <Header>
         <HeaderContent>
           <Logo src={logo} alt="Logo" />
-          <HeaderText>IGREJA PENIEL ZONA NORTE</HeaderText>
+          <HeaderText>{headerText || 'IGREJA PENIEL'}</HeaderText> {/* Usa o headerText dinâmico */}
         </HeaderContent>
         <ButtonsWrapper>
           <ToggleButton onClick={() => setShowGraphs(!showGraphs)}>
@@ -169,7 +200,7 @@ const App = () => {
           income={income}
           expense={expense}
         />
-        <InputArea onAdd={handleAddItem} />
+       <InputArea onAdd={handleAddItem} dbName={dbName} />
         {showGraphs ? (
           <Graphs items={filteredList} />
         ) : (
@@ -188,6 +219,19 @@ const App = () => {
 
 // Estilização dos componentes
 const Container = styled.div``;
+
+const LoadingContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f8f9fa;
+`;
+
+const LoadingText = styled.h2`
+  font-size: 24px;
+  color: #333;
+`;
 
 const Header = styled.div`
   background: linear-gradient(135deg, #2c3e50, #34495e);

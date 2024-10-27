@@ -13,8 +13,15 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     setError(null);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user; // Obtém o objeto do usuário
       console.log('Login bem-sucedido!');
+      
+      // Salvar o email e UID no localStorage
+      localStorage.setItem('email', user.email || '');
+      localStorage.setItem('uid', user.uid);
+      
+      // Redirecionar ou atualizar o estado do aplicativo aqui, se necessário
     } catch (err) {
       setError('Erro ao fazer login. Verifique suas credenciais.');
       console.error(err);
@@ -24,8 +31,7 @@ const LoginScreen = () => {
   return (
     <Container>
       <LoginBox>
-        <Logo src={logo} alt="Logo da Igreja Peniel" />
-        <Title>Zona Norte</Title>
+        <Title><Logo src={logo} alt="Logo da Igreja Peniel" /></Title>
         {error && <ErrorMessage>{error}</ErrorMessage>}
         <Input
           type="email"
@@ -58,13 +64,13 @@ const Container = styled.div`
 
 const LoginBox = styled.div`
   background-color: rgba(255, 255, 255, 0.9);
-  padding: 30px;  /* Ajuste o padding para centralizar melhor os elementos */
+  padding: 30px;
   width: 100%;margin: 20px;
   max-width: 400px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   border-radius: 10px;
   text-align: center;
-  animation: fadeIn 0.5s; /* Animação para a entrada */
+  animation: fadeIn 0.5s; 
   
   @keyframes fadeIn {
     from {
@@ -79,19 +85,20 @@ const LoginBox = styled.div`
 `;
 
 const Logo = styled.img`
-  width: 180px; /* Ajuste do tamanho do logo para que fique proporcional */
-  margin-bottom: 10px; /* Reduzido para mais proximidade */
+  width: 250px;  
+  margin-top: -40px; 
+  margin-bottom: 5px; 
 `;
 
 const Title = styled.h2`
   margin-bottom: 20px;
   color: #333;
-  font-family: 'Georgia', serif; /* Fonte mais elegante */
+  font-family: 'Georgia', serif; 
 `;
 
 const Input = styled.input`
   width: 90%;
-  padding: 10px; /* Reduzido para um tamanho mais adequado */
+  padding: 10px; 
   margin: 10px 0;
   border: 1px solid #ddd;
   border-radius: 5px;
@@ -99,16 +106,18 @@ const Input = styled.input`
   transition: border 0.3s, box-shadow 0.3s;
 
   &:focus {
-    border: 1px solid #2980b9; /* Borda azul ao focar */
+    border: 1px solid #2980b9; 
     outline: none;
-    box-shadow: 0 0 5px rgba(41, 128, 185, 0.5); /* Efeito de sombra ao focar */
+    box-shadow: 0 0 5px rgba(41, 128, 185, 0.5); 
   }
 `;
 
 const ActionButton = styled.button`
   width: 100%;
   padding: 12px;
-  background-color: #2980b9; /* Cor azul mais suave */
+  margin-top: 30px; 
+  margin-bottom: 15px; 
+  background-color: #2980b9; 
   color: #fff;
   border: none;
   border-radius: 5px;
@@ -116,15 +125,15 @@ const ActionButton = styled.button`
   cursor: pointer;
   transition: background-color 0.3s;
 
-  &:hover {
-    background-color: #1a5276; /* Azul mais escuro ao passar o mouse */
+  &:hover { 
+    background-color: #1a5276; 
   }
 `;
 
 const ErrorMessage = styled.p`
   color: red;
   font-size: 14px;
-  margin-bottom: 10px; /* Adicionando espaço abaixo da mensagem de erro */
+  margin-bottom: 10px; 
 `;
 
 export default LoginScreen;
