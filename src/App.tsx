@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import styled from "styled-components";
 import { Item } from './types/Item';
 import { db, auth } from './firebaseConfig';
@@ -13,7 +13,7 @@ import Graphs from './components/Graphs';
 import { categories } from './data/categories';
 import PDFModal from './components/PDFModal';
 import ConfirmationModal from './components/ConfirmationModal';
-import logo from './assets/logoBranco.png'; // Importação da imagem do logo
+import logo from './assets/logoBranco.png';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -29,8 +29,8 @@ const App = () => {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
   const [dbName, setDbName] = useState('');
-  const [headerText, setHeaderText] = useState(''); // Novo estado para o texto do cabeçalho
-  const [loading, setLoading] = useState(true); // Estado de carregamento
+  const [headerText, setHeaderText] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, user => {
@@ -53,29 +53,22 @@ const App = () => {
       PenielIbura: 'IGREJA PENIEL IBURA',
       PenielIpsep: 'IGREJA PENIEL IPSEP',
     };
-  
+
     databaseNames.forEach(dbName => {
       const usersRef = ref(db, `${dbName}/usuarios`);
       onValue(usersRef, snapshot => {
         snapshot.forEach(childSnapshot => {
           if (childSnapshot.key === uid) {
             setDbName(dbName);
-            setHeaderText(churchNames[dbName as keyof typeof churchNames]); // Usar asserção de tipo
+            setHeaderText(churchNames[dbName as keyof typeof churchNames]);
           }
         });
       });
     });
-  };  
+  };
 
-  useEffect(() => {
-    const uid = localStorage.getItem('uid');
-    if (uid && dbName) {
-      fetchData(uid);
-    }
-  }, [dbName]);
-
-  const fetchData = async (uid: string) => {
-    setLoading(true); // Começa o carregamento
+  const fetchData = useCallback(async (uid: string) => {
+    setLoading(true);
     const itemsRef = ref(db, `${dbName}`);
     onValue(itemsRef, snapshot => {
       const data: Item[] = [];
@@ -90,9 +83,16 @@ const App = () => {
         });
       });
       setList(data);
-      setLoading(false); // Finaliza o carregamento
+      setLoading(false);
     }, { onlyOnce: true });
-  };
+  }, [dbName]);
+
+  useEffect(() => {
+    const uid = localStorage.getItem('uid');
+    if (uid && dbName) {
+      fetchData(uid);
+    }
+  }, [dbName, fetchData]);
 
   useEffect(() => {
     const filtered = filterListByMonth(list, `${selectedYear}-${selectedMonth}`);
@@ -157,7 +157,7 @@ const App = () => {
     return <LoginScreen />;
   }
 
-  if (loading) { // Exibe uma tela de carregamento enquanto 'loading' é verdadeiro
+  if (loading) {
     return (
       <LoadingContainer>
         <LoadingText>Carregando dados...</LoadingText>
