@@ -153,6 +153,10 @@ const App = () => {
     setItemToDelete(null);
   };
 
+  const handleCloseModal = () => {
+    setShowModal(false); // Atualiza o estado para fechar o modal
+  };
+
   if (!isAuthenticated) {
     return <LoginScreen />;
   }
@@ -184,14 +188,18 @@ const App = () => {
       </Header>
 
       <PDFModal
-        show={showModal}
-        onClose={() => setShowModal(false)}
-        filteredList={filteredList}
-        selectedMonth={selectedMonth}
-        selectedYear={selectedYear}
-        setSelectedMonth={setSelectedMonth}
-        setSelectedYear={setSelectedYear}
-      />
+  show={showModal}
+  onClose={handleCloseModal}
+  filteredList={filteredList}
+  selectedMonth={selectedMonth}
+  selectedYear={selectedYear}
+  setSelectedMonth={setSelectedMonth}
+  setSelectedYear={setSelectedYear}
+  headerTitle={headerText} // Passando o título do header
+
+/>
+
+
 
       <Body>
         <InfoArea
