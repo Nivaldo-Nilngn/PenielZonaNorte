@@ -44,7 +44,7 @@ const PDFModal: React.FC<PDFModalProps> = ({
 
   const generatePDF = () => {
     const doc = new jsPDF();
-    let filteredItems: any[] = [];
+    let filteredItems = [];
 
     if (reportType === 'monthly') {
       filteredItems = filteredList.filter(item => {
