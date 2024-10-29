@@ -24,11 +24,10 @@ const PDFModal: React.FC<PDFModalProps> = ({
   setSelectedMonth,
   setSelectedYear,
 }) => {
-  const [reportType, setReportType] = useState<'monthly' | 'daily' | 'weekly'>('monthly');
+  const [reportType, setReportType] = useState<'monthly' | 'weekly' | 'daily'>('monthly');
   const [selectedDate, setSelectedDate] = useState('');
-  const [selectedWeek, setSelectedWeek] = useState('');
-
-  const categoryTranslations: { [key: string]: string } = {
+  
+  const categoryTranslations = {
     tithe: "Dízimo",
     offering: "Oferta",
     specialOffering: "Oferta Especial",
@@ -44,8 +43,8 @@ const PDFModal: React.FC<PDFModalProps> = ({
 
   const generatePDF = () => {
     const doc = new jsPDF();
-    let filteredItems = [];
 
+    let filteredItems = [];
     if (reportType === 'monthly') {
       filteredItems = filteredList.filter(item => {
         const itemDate = new Date(item.date);
@@ -53,19 +52,21 @@ const PDFModal: React.FC<PDFModalProps> = ({
         const itemYear = itemDate.getFullYear().toString();
         return itemMonth === selectedMonth && itemYear === selectedYear;
       });
-    } else if (reportType === 'daily') {
-      filteredItems = filteredList.filter(item =>
-        new Date(item.date).toISOString().split('T')[0] === selectedDate
-      );
     } else if (reportType === 'weekly') {
-      const [year, week] = selectedWeek.split('-W');
+      // Define the date range for the week here based on selectedDate
+      // Assuming selectedDate is the start of the week
+      const startDate = new Date(selectedDate);
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 6);
+
       filteredItems = filteredList.filter(item => {
         const itemDate = new Date(item.date);
-        const itemWeek = Math.ceil(
-          (itemDate.getDate() - itemDate.getDay() + 10) / 7
-        );
-        return itemDate.getFullYear().toString() === year && itemWeek === parseInt(week);
+        return itemDate >= startDate && itemDate <= endDate;
       });
+    } else {
+      filteredItems = filteredList.filter(item => 
+        new Date(item.date).toISOString().split('T')[0] === selectedDate
+      );
     }
 
     doc.setFontSize(20);
@@ -89,6 +90,8 @@ const PDFModal: React.FC<PDFModalProps> = ({
       head: [['Título', 'Categoria', 'Valor', 'Data']],
       body: incomeData,
       startY: 40,
+      margin: { top: -20 },
+      styles: { cellPadding: 2 },
       theme: 'striped',
     });
 
@@ -96,7 +99,11 @@ const PDFModal: React.FC<PDFModalProps> = ({
       (total, item) => total + Number(item[2].replace('R$ ', '').replace(',', '.')),
       0
     );
-    doc.text(`Total de Receitas: R$ ${totalIncome.toFixed(2)}`, 14, doc.previousAutoTable.finalY + 10);
+    doc.text(
+      `Total de Receitas: R$ ${totalIncome.toFixed(2)}`,
+      14,
+      doc.previousAutoTable ? doc.previousAutoTable.finalY + 10 : 30
+    );
 
     const expenseData = filteredItems
       .filter(item => categories[item.category]?.expense)
@@ -110,22 +117,29 @@ const PDFModal: React.FC<PDFModalProps> = ({
     doc.autoTable({
       head: [['Título', 'Categoria', 'Valor', 'Data']],
       body: expenseData,
-      startY: doc.previousAutoTable.finalY + 30,
+      startY: doc.previousAutoTable ? doc.previousAutoTable.finalY + 30 : 50,
       theme: 'grid',
       headStyles: { fillColor: [255, 0, 0] },
+      styles: { cellPadding: 2 },
     });
 
     const totalExpense = expenseData.reduce(
       (total, item) => total + Number(item[2].replace('R$ ', '').replace(',', '.')),
       0
     );
-    doc.text(`Total de Despesas: R$ ${totalExpense.toFixed(2)}`, 14, doc.previousAutoTable.finalY + 10);
+    doc.text(
+      `Total de Despesas: R$ ${totalExpense.toFixed(2)}`,
+      14,
+      doc.previousAutoTable ? doc.previousAutoTable.finalY + 10 : 30
+    );
 
     const balance = totalIncome - totalExpense;
     const finalY = doc.internal.pageSize.getHeight() - 20;
-    doc.text(`Balanço: R$ ${balance.toFixed(2)}`, doc.internal.pageSize.getWidth() - 14, finalY, { align: 'right' });
+    const balanceText = `Balanço: R$ ${balance.toFixed(2)}`;
 
-    doc.save(`relatorio_financeiro_${reportType}_${selectedWeek || selectedDate}.pdf`);
+    doc.text(balanceText, doc.internal.pageSize.getWidth() - 14, finalY, { align: 'right' });
+
+    doc.save(`relatorio_financeiro_${reportType}_${reportType === 'weekly' ? `semana_${selectedDate}` : (reportType === 'monthly' ? `${selectedMonth}_${selectedYear}` : selectedDate)}.pdf`);
   };
 
   if (!show) return null;
@@ -133,25 +147,33 @@ const PDFModal: React.FC<PDFModalProps> = ({
   return (
     <Modal>
       <ModalContent>
-        <h2>Gerar Relatório</h2>
-        <Select onChange={e => setReportType(e.target.value as 'monthly' | 'daily' | 'weekly')}>
+        <h2>Selecionar Tipo de Relatório</h2>
+        <Select onChange={e => setReportType(e.target.value as 'monthly' | 'weekly' | 'daily')}>
           <option value="monthly">Mensal</option>
-          <option value="daily">Diário</option>
           <option value="weekly">Semanal</option>
+          <option value="daily">Diário</option>
         </Select>
         {reportType === 'monthly' ? (
-          <Input type="month" value={`${selectedYear}-${selectedMonth}`} onChange={e => {
-            const [year, month] = e.target.value.split("-");
-            setSelectedYear(year);
-            setSelectedMonth(month);
-          }} />
-        ) : reportType === 'daily' ? (
-          <Input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
+          <Input
+            type="month"
+            value={`${selectedYear}-${selectedMonth}`}
+            onChange={e => {
+              const [year, month] = e.target.value.split("-");
+              setSelectedYear(year);
+              setSelectedMonth(month);
+            }}
+          />
         ) : (
-          <Input type="week" value={selectedWeek} onChange={e => setSelectedWeek(e.target.value)} />
+          <Input
+            type="date"
+            value={selectedDate}
+            onChange={e => setSelectedDate(e.target.value)}
+          />
         )}
-        <Button onClick={generatePDF}>Gerar PDF</Button>
-        <Button onClick={onClose}>Fechar</Button>
+        <ButtonContainer>
+          <Button onClick={generatePDF}>Gerar PDF</Button>
+          <Button onClick={onClose}>Fechar</Button>
+        </ButtonContainer>
       </ModalContent>
     </Modal>
   );
@@ -173,50 +195,54 @@ const ModalContent = styled.div`
   background: #f9f9f9;
   padding: 30px;
   border-radius: 10px;
-  max-width: 500px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  max-width: 450px;
   width: 90%;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
   text-align: center;
-
+  
   h2 {
     color: #333;
-    font-size: 1.6em;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
   }
 `;
 
 const Select = styled.select`
   padding: 12px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   border-radius: 5px;
   width: 100%;
+  margin-bottom: 20px;
 `;
 
 const Input = styled.input`
   padding: 12px;
-  margin-bottom: 20px;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   border-radius: 5px;
   width: 100%;
+  margin-bottom: 20px;
+`;
+
+const ButtonContainer = styled.div`
+  display: flex;
+  gap: 10px;
+  justify-content: center;
 `;
 
 const Button = styled.button`
-  padding: 12px 25px;
-  margin: 10px;
-  background-color: #4CAF50;
-  color: white;
+  padding: 12px 20px;
+  background-color: #007BFF;
+  color: #FFF;
   border: none;
-  border-radius: 8px;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 1em;
+  font-weight: bold;
 
   &:hover {
-    background-color: #45a049;
+    background-color: #0056b3;
   }
 
   &:active {
-    background-color: #388e3c;
+    background-color: #004085;
   }
 `;
 
