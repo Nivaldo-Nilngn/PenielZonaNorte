@@ -53,7 +53,9 @@ const PDFModal: React.FC<PDFModalProps> = ({
         return itemMonth === selectedMonth && itemYear === selectedYear;
       });
     } else {
-      filteredItems = filteredList.filter(item => item.date === selectedDate);
+      filteredItems = filteredList.filter(item => 
+        new Date(item.date).toISOString().split('T')[0] === selectedDate
+      );
     }
 
     doc.setFontSize(20);
