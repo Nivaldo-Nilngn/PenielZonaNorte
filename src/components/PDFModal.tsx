@@ -26,6 +26,7 @@ const PDFModal: React.FC<PDFModalProps> = ({
 }) => {
   const [reportType, setReportType] = useState<'monthly' | 'daily'>('monthly');
   const [selectedDate, setSelectedDate] = useState('');
+  const [churchName, setChurchName] = useState(''); // Novo estado para armazenar o nome da igreja
 
   const categoryTranslations: { [key: string]: string } = {
     tithe: "Dízimo",
@@ -39,6 +40,28 @@ const PDFModal: React.FC<PDFModalProps> = ({
     cleaningProducts: "Produtos de Limpeza",
     disposableCups: "Copos Descartáveis",
     genericExpense: "Saída"
+  };
+
+  const fetchDatabaseName = (uid: string) => {
+    const databaseNames = ['PenielZonaNote', 'PenielIbura', 'PenielIpsep'];
+    const churchNames = {
+      PenielZonaNote: 'IGREJA PENIEL ZONA NORTE',
+      PenielIbura: 'IGREJA PENIEL IBURA',
+      PenielIpsep: 'IGREJA PENIEL IPSEP',
+    };
+
+    databaseNames.forEach(dbName => {
+      const usersRef = ref(db, `${dbName}/usuarios`);
+      onValue(usersRef, snapshot => {
+        snapshot.forEach(childSnapshot => {
+          if (childSnapshot.key === uid) {
+            setDbName(dbName);
+            setHeaderText(churchNames[dbName as keyof typeof churchNames]);
+            setChurchName(churchNames[dbName as keyof typeof churchNames]); // Atualiza o nome da igreja
+          }
+        });
+      });
+    });
   };
 
   const generatePDF = () => {
@@ -60,7 +83,7 @@ const PDFModal: React.FC<PDFModalProps> = ({
 
     doc.setFontSize(20);
     doc.text(
-      "RELATÓRIO FINANCEIRO - IGREJA PENIEL ZONA NORTE",
+      `RELATÓRIO FINANCEIRO - ${churchName}`, // Usando o nome da igreja aqui
       doc.internal.pageSize.getWidth() / 2,
       16,
       { align: 'center' }
@@ -128,7 +151,8 @@ const PDFModal: React.FC<PDFModalProps> = ({
 
     doc.text(balanceText, doc.internal.pageSize.getWidth() - 14, finalY, { align: 'right' });
 
-    doc.save(`relatorio_financeiro_${reportType === 'monthly' ? `${selectedMonth}_${selectedYear}` : selectedDate}.pdf`);
+    // Usando o nome da igreja no nome do arquivo PDF
+    doc.save(`relatorio_financeiro_${churchName.replace(/\s+/g, '_').toLowerCase()}_${reportType === 'monthly' ? `${selectedMonth}_${selectedYear}` : selectedDate}.pdf`);
   };
 
   if (!show) return null;
