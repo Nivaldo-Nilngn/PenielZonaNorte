@@ -45,22 +45,21 @@ const PDFModal: React.FC<PDFModalProps> = ({
 
   const generatePDF = () => {
     const doc = new jsPDF();
-    let filteredItems = [];
-
-    if (reportType === 'monthly') {
-      filteredItems = filteredList.filter(item => {
-        const itemDate = new Date(item.date);
-        const itemMonth = (itemDate.getMonth() + 1).toString().padStart(2, '0');
-        const itemYear = itemDate.getFullYear().toString();
-        return itemMonth === selectedMonth && itemYear === selectedYear;
-      });
-    } else if (reportType === 'daily') {
-      filteredItems = filteredList.filter(item => item.date === selectedDate);
-    } else {
-      filteredItems = filteredList.filter(item => 
-        new Date(item.date) >= new Date(startDate) && new Date(item.date) <= new Date(endDate)
-      );
-    }
+    let filteredItems;
+if (reportType === 'weekly') {
+  filteredItems = filteredList.filter(item => {
+    const itemDate = new Date(item.date);
+    return itemDate >= new Date(startDate) && itemDate <= new Date(endDate);
+  });
+} else if (reportType === 'daily') {
+  filteredItems = filteredList.filter(item => 
+    new Date(item.date).toISOString().split('T')[0] === selectedDate
+  );
+} else {
+  filteredItems = filteredList.filter(item => 
+    new Date(item.date) >= new Date(startDate) && new Date(item.date) <= new Date(endDate)
+  );
+}
 
     doc.setFontSize(20);
     doc.text(
