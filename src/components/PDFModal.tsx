@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -24,36 +24,38 @@ const PDFModal: React.FC<PDFModalProps> = ({
   setSelectedMonth,
   setSelectedYear,
 }) => {
+  const [reportType, setReportType] = useState<'monthly' | 'daily'>('monthly');
+  const [selectedDate, setSelectedDate] = useState('');
 
-   // Mapeamento das categorias para português
- const categoryTranslations: { [key: string]: string } = {
-  tithe: "Dízimo",
-  offering: "Oferta",
-  specialOffering: "Oferta Especial",
-  billsToPay: "Aluguel",
-  electricity: "Conta de Luz",
-  water: "Conta de Água",
-  internet: "Internet",
-  waterPurchase: "Compra de Água",
-  cleaningProducts: "Produtos de Limpeza",
-  disposableCups: "Copos Descartáveis",
-  genericExpense: "Saída"
-};
+  const categoryTranslations: { [key: string]: string } = {
+    tithe: "Dízimo",
+    offering: "Oferta",
+    specialOffering: "Oferta Especial",
+    billsToPay: "Aluguel",
+    electricity: "Conta de Luz",
+    water: "Conta de Água",
+    internet: "Internet",
+    waterPurchase: "Compra de Água",
+    cleaningProducts: "Produtos de Limpeza",
+    disposableCups: "Copos Descartáveis",
+    genericExpense: "Saída"
+  };
 
-  // Função para gerar o PDF
   const generatePDF = () => {
     const doc = new jsPDF();
 
-    // Filtrar a lista para o mês e ano selecionados
-    const filteredForSelectedMonth = filteredList.filter(item => {
-      const itemDate = new Date(item.date);
-      const itemMonth = (itemDate.getMonth() + 1).toString().padStart(2, '0');
-      const itemYear = itemDate.getFullYear().toString();
+    let filteredItems = [];
+    if (reportType === 'monthly') {
+      filteredItems = filteredList.filter(item => {
+        const itemDate = new Date(item.date);
+        const itemMonth = (itemDate.getMonth() + 1).toString().padStart(2, '0');
+        const itemYear = itemDate.getFullYear().toString();
+        return itemMonth === selectedMonth && itemYear === selectedYear;
+      });
+    } else {
+      filteredItems = filteredList.filter(item => item.date === selectedDate);
+    }
 
-      return itemMonth === selectedMonth && itemYear === selectedYear;
-    });
-
-    // Adicionando título centralizado
     doc.setFontSize(20);
     doc.text(
       "RELATÓRIO FINANCEIRO - IGREJA PENIEL ZONA NORTE",
@@ -62,12 +64,11 @@ const PDFModal: React.FC<PDFModalProps> = ({
       { align: 'center' }
     );
 
-    // Criando tabela de entradas
-    const incomeData = filteredForSelectedMonth
+    const incomeData = filteredItems
       .filter(item => !categories[item.category]?.expense)
       .map(item => [
         item.title,
-        categoryTranslations[item.category] || item.category, // Tradução da categoria
+        categoryTranslations[item.category] || item.category,
         `R$ ${item.value.toFixed(2)}`,
         new Date(item.date).toLocaleDateString('pt-BR'),
       ]);
@@ -81,7 +82,6 @@ const PDFModal: React.FC<PDFModalProps> = ({
       theme: 'striped',
     });
 
-    // Total de entradas
     const totalIncome = incomeData.reduce(
       (total, item) => total + Number(item[2].replace('R$ ', '').replace(',', '.')),
       0
@@ -92,12 +92,11 @@ const PDFModal: React.FC<PDFModalProps> = ({
       doc.previousAutoTable ? doc.previousAutoTable.finalY + 10 : 30
     );
 
-    // Criando tabela de saídas
-    const expenseData = filteredForSelectedMonth
+    const expenseData = filteredItems
       .filter(item => categories[item.category]?.expense)
       .map(item => [
         item.title,
-        categoryTranslations[item.category] || item.category, // Tradução da categoria
+        categoryTranslations[item.category] || item.category,
         `R$ ${item.value.toFixed(2)}`,
         new Date(item.date).toLocaleDateString('pt-BR'),
       ]);
@@ -111,7 +110,6 @@ const PDFModal: React.FC<PDFModalProps> = ({
       styles: { cellPadding: 2 },
     });
 
-    // Total de saídas
     const totalExpense = expenseData.reduce(
       (total, item) => total + Number(item[2].replace('R$ ', '').replace(',', '.')),
       0
@@ -122,17 +120,13 @@ const PDFModal: React.FC<PDFModalProps> = ({
       doc.previousAutoTable ? doc.previousAutoTable.finalY + 10 : 30
     );
 
-    // Calculando o balanço
     const balance = totalIncome - totalExpense;
-
-    // Adicionando o balanço na parte inferior da página
     const finalY = doc.internal.pageSize.getHeight() - 20;
     const balanceText = `Balanço: R$ ${balance.toFixed(2)}`;
 
     doc.text(balanceText, doc.internal.pageSize.getWidth() - 14, finalY, { align: 'right' });
 
-    // Salvar o PDF
-    doc.save(`relatorio_financeiro_${selectedMonth}_${selectedYear}.pdf`);
+    doc.save(`relatorio_financeiro_${reportType === 'monthly' ? `${selectedMonth}_${selectedYear}` : selectedDate}.pdf`);
   };
 
   if (!show) return null;
@@ -140,16 +134,28 @@ const PDFModal: React.FC<PDFModalProps> = ({
   return (
     <Modal>
       <ModalContent>
-        <h2>Selecionar Mês e Ano</h2>
-        <Input
-          type="month"
-          value={`${selectedYear}-${selectedMonth}`}
-          onChange={e => {
-            const [year, month] = e.target.value.split("-");
-            setSelectedYear(year);
-            setSelectedMonth(month);
-          }}
-        />
+        <h2>Selecionar Tipo de Relatório</h2>
+        <Select onChange={e => setReportType(e.target.value as 'monthly' | 'daily')}>
+          <option value="monthly">Mensal</option>
+          <option value="daily">Diário</option>
+        </Select>
+        {reportType === 'monthly' ? (
+          <Input
+            type="month"
+            value={`${selectedYear}-${selectedMonth}`}
+            onChange={e => {
+              const [year, month] = e.target.value.split("-");
+              setSelectedYear(year);
+              setSelectedMonth(month);
+            }}
+          />
+        ) : (
+          <Input
+            type="date"
+            value={selectedDate}
+            onChange={e => setSelectedDate(e.target.value)}
+          />
+        )}
         <Button onClick={generatePDF}>Gerar PDF</Button>
         <Button onClick={onClose}>Fechar</Button>
       </ModalContent>
@@ -157,7 +163,6 @@ const PDFModal: React.FC<PDFModalProps> = ({
   );
 };
 
-// Estilização da Modal
 const Modal = styled.div`
   position: fixed;
   top: 0;
@@ -180,6 +185,15 @@ const ModalContent = styled.div`
   h2 {
     margin-bottom: 20px;
   }
+`;
+
+const Select = styled.select`
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+  box-sizing: border-box;
 `;
 
 const Input = styled.input`
