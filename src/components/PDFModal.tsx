@@ -13,9 +13,8 @@ interface PDFModalProps {
   selectedYear: string;
   setSelectedMonth: (month: string) => void;
   setSelectedYear: (year: string) => void;
-  headerTitle: string; // Nova prop para o título do header
+  headerTitle: string;
 }
-
 
 const PDFModal: React.FC<PDFModalProps> = ({
   show,
@@ -25,7 +24,7 @@ const PDFModal: React.FC<PDFModalProps> = ({
   selectedYear,
   setSelectedMonth,
   setSelectedYear,
-  headerTitle, // Recebendo a prop
+  headerTitle,
 }) => {
   const [reportType, setReportType] = useState<'monthly' | 'daily'>('monthly');
   const [selectedDate, setSelectedDate] = useState('');
@@ -63,7 +62,7 @@ const PDFModal: React.FC<PDFModalProps> = ({
 
     doc.setFontSize(20);
     doc.text(
-      `RELATÓRIO FINANCEIRO - ${headerTitle.toUpperCase()}`, // Dinâmico
+      `RELATÓRIO FINANCEIRO - ${headerTitle.toUpperCase()}`,
       doc.internal.pageSize.getWidth() / 2,
       16,
       { align: 'center' }
@@ -131,7 +130,7 @@ const PDFModal: React.FC<PDFModalProps> = ({
 
     doc.text(balanceText, doc.internal.pageSize.getWidth() - 14, finalY, { align: 'right' });
 
-    doc.save(`relatorio_financeiro - ${headerTitle} - ${reportType === 'monthly' ? `${selectedMonth}_${selectedYear}` : selectedDate}.pdf`);
+    doc.save(`RELATORIO_FINANCEIRO - ${headerTitle} - ${reportType === 'monthly' ? `${selectedMonth}_${selectedYear}` : selectedDate}.pdf`);
   };
 
   if (!show) return null;
@@ -174,57 +173,97 @@ const Modal = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 `;
 
 const ModalContent = styled.div`
   background: white;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
   text-align: center;
+  max-width: 90vw; /* Para se ajustar em telas pequenas */
+  width: 400px; /* Largura fixa para telas maiores */
+  animation: fadeIn 0.3s ease;
 
   h2 {
     margin-bottom: 20px;
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    font-size: 1.5rem; /* Aumenta o tamanho do título */
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 15px;
+    width: 90%; /* Largura total em telas pequenas */
   }
 `;
 
 const Select = styled.select`
-  padding: 10px;
+  padding: 12px;
   margin-bottom: 20px;
   border: 1px solid #ccc;
   border-radius: 5px;
   width: 100%;
   box-sizing: border-box;
+  font-family: 'Arial', sans-serif;
+  font-size: 1rem; /* Aumenta o tamanho da fonte */
+
+  &:focus {
+    border-color: #007BFF;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  }
 `;
 
 const Input = styled.input`
-  padding: 10px;
+  padding: 12px;
   margin-bottom: 20px;
   border: 1px solid #ccc;
   border-radius: 5px;
   width: 100%;
   box-sizing: border-box;
+  font-family: 'Arial', sans-serif;
+  font-size: 1rem; /* Aumenta o tamanho da fonte */
+
+  &:focus {
+    border-color: #007BFF;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  }
 `;
 
 const Button = styled.button`
-  padding: 10px 20px;
+  padding: 12px 20px;
   margin: 5px;
-  background-color: #007BFF;
-  color: #FFF;
   border: none;
   border-radius: 5px;
+  background-color: #007BFF;
+  color: white;
+  font-size: 1rem;
   cursor: pointer;
+  transition: background-color 0.3s;
 
   &:hover {
     background-color: #0056b3;
   }
 
-  &:active {
-    background-color: #004085;
+  @media (max-width: 480px) {
+    width: 100%; /* Botões em largura total em telas pequenas */
+    margin: 5px 0; /* Margem entre os botões */
   }
 `;
 
