@@ -70,8 +70,28 @@ const PDFModal: React.FC<PDFModalProps> = ({
       { align: 'center' }
     );
 
-    // Code for generating tables and calculating totals (Income and Expenses)
-    // ...
+    // Tabelas e cálculos de totais (Entradas e Saídas)
+    doc.autoTable({
+      head: [['Data', 'Categoria', 'Descrição', 'Valor']],
+      body: filteredItems.map(item => [
+        item.date,
+        categoryTranslations[item.category] || item.category,
+        item.description,
+        `R$ ${item.value.toFixed(2)}`,
+      ]),
+      startY: 30,
+    });
+
+    // Totalizadores de entradas e saídas
+    const totalIncome = filteredItems
+      .filter(item => item.value > 0)
+      .reduce((acc, item) => acc + item.value, 0);
+    const totalExpenses = filteredItems
+      .filter(item => item.value < 0)
+      .reduce((acc, item) => acc + Math.abs(item.value), 0);
+
+    doc.text(`Total de Entradas: R$ ${totalIncome.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
+    doc.text(`Total de Saídas: R$ ${totalExpenses.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 20);
 
     doc.save(`relatorio_financeiro_${reportType}_${reportType === 'weekly' ? `${startDate}_${endDate}` : ''}.pdf`);
   };
