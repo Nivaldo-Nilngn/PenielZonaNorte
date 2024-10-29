@@ -26,8 +26,7 @@ const PDFModal: React.FC<PDFModalProps> = ({
 }) => {
   const [reportType, setReportType] = useState<'monthly' | 'daily' | 'weekly'>('monthly');
   const [selectedDate, setSelectedDate] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [selectedWeek, setSelectedWeek] = useState('');
 
   const categoryTranslations: { [key: string]: string } = {
     tithe: "Dízimo",
@@ -45,21 +44,29 @@ const PDFModal: React.FC<PDFModalProps> = ({
 
   const generatePDF = () => {
     const doc = new jsPDF();
-    let filteredItems;
-if (reportType === 'weekly') {
-  filteredItems = filteredList.filter(item => {
-    const itemDate = new Date(item.date);
-    return itemDate >= new Date(startDate) && itemDate <= new Date(endDate);
-  });
-} else if (reportType === 'daily') {
-  filteredItems = filteredList.filter(item => 
-    new Date(item.date).toISOString().split('T')[0] === selectedDate
-  );
-} else {
-  filteredItems = filteredList.filter(item => 
-    new Date(item.date) >= new Date(startDate) && new Date(item.date) <= new Date(endDate)
-  );
-}
+    let filteredItems = [];
+
+    if (reportType === 'monthly') {
+      filteredItems = filteredList.filter(item => {
+        const itemDate = new Date(item.date);
+        const itemMonth = (itemDate.getMonth() + 1).toString().padStart(2, '0');
+        const itemYear = itemDate.getFullYear().toString();
+        return itemMonth === selectedMonth && itemYear === selectedYear;
+      });
+    } else if (reportType === 'daily') {
+      filteredItems = filteredList.filter(item =>
+        new Date(item.date).toISOString().split('T')[0] === selectedDate
+      );
+    } else if (reportType === 'weekly') {
+      const [year, week] = selectedWeek.split('-W');
+      filteredItems = filteredList.filter(item => {
+        const itemDate = new Date(item.date);
+        const itemWeek = Math.ceil(
+          (itemDate.getDate() - itemDate.getDay() + 10) / 7
+        );
+        return itemDate.getFullYear().toString() === year && itemWeek === parseInt(week);
+      });
+    }
 
     doc.setFontSize(20);
     doc.text(
@@ -69,30 +76,56 @@ if (reportType === 'weekly') {
       { align: 'center' }
     );
 
-    // Tabelas e cálculos de totais (Entradas e Saídas)
-    doc.autoTable({
-      head: [['Data', 'Categoria', 'Descrição', 'Valor']],
-      body: filteredItems.map(item => [
-        item.date,
+    const incomeData = filteredItems
+      .filter(item => !categories[item.category]?.expense)
+      .map(item => [
+        item.title,
         categoryTranslations[item.category] || item.category,
-        item.description,
         `R$ ${item.value.toFixed(2)}`,
-      ]),
-      startY: 30,
+        new Date(item.date).toLocaleDateString('pt-BR'),
+      ]);
+
+    doc.autoTable({
+      head: [['Título', 'Categoria', 'Valor', 'Data']],
+      body: incomeData,
+      startY: 40,
+      theme: 'striped',
     });
 
-    // Totalizadores de entradas e saídas
-    const totalIncome = filteredItems
-      .filter(item => item.value > 0)
-      .reduce((acc, item) => acc + item.value, 0);
-    const totalExpenses = filteredItems
-      .filter(item => item.value < 0)
-      .reduce((acc, item) => acc + Math.abs(item.value), 0);
+    const totalIncome = incomeData.reduce(
+      (total, item) => total + Number(item[2].replace('R$ ', '').replace(',', '.')),
+      0
+    );
+    doc.text(`Total de Receitas: R$ ${totalIncome.toFixed(2)}`, 14, doc.previousAutoTable.finalY + 10);
 
-    doc.text(`Total de Entradas: R$ ${totalIncome.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
-    doc.text(`Total de Saídas: R$ ${totalExpenses.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 20);
+    const expenseData = filteredItems
+      .filter(item => categories[item.category]?.expense)
+      .map(item => [
+        item.title,
+        categoryTranslations[item.category] || item.category,
+        `R$ ${item.value.toFixed(2)}`,
+        new Date(item.date).toLocaleDateString('pt-BR'),
+      ]);
 
-    doc.save(`relatorio_financeiro_${reportType}_${reportType === 'weekly' ? `${startDate}_${endDate}` : ''}.pdf`);
+    doc.autoTable({
+      head: [['Título', 'Categoria', 'Valor', 'Data']],
+      body: expenseData,
+      startY: doc.previousAutoTable.finalY + 30,
+      theme: 'grid',
+      headStyles: { fillColor: [255, 0, 0] },
+    });
+
+    const totalExpense = expenseData.reduce(
+      (total, item) => total + Number(item[2].replace('R$ ', '').replace(',', '.')),
+      0
+    );
+    doc.text(`Total de Despesas: R$ ${totalExpense.toFixed(2)}`, 14, doc.previousAutoTable.finalY + 10);
+
+    const balance = totalIncome - totalExpense;
+    const finalY = doc.internal.pageSize.getHeight() - 20;
+    doc.text(`Balanço: R$ ${balance.toFixed(2)}`, doc.internal.pageSize.getWidth() - 14, finalY, { align: 'right' });
+
+    doc.save(`relatorio_financeiro_${reportType}_${selectedWeek || selectedDate}.pdf`);
   };
 
   if (!show) return null;
@@ -100,13 +133,12 @@ if (reportType === 'weekly') {
   return (
     <Modal>
       <ModalContent>
-        <Title>Selecionar Tipo de Relatório</Title>
+        <h2>Gerar Relatório</h2>
         <Select onChange={e => setReportType(e.target.value as 'monthly' | 'daily' | 'weekly')}>
           <option value="monthly">Mensal</option>
           <option value="daily">Diário</option>
           <option value="weekly">Semanal</option>
         </Select>
-
         {reportType === 'monthly' ? (
           <Input type="month" value={`${selectedYear}-${selectedMonth}`} onChange={e => {
             const [year, month] = e.target.value.split("-");
@@ -116,88 +148,75 @@ if (reportType === 'weekly') {
         ) : reportType === 'daily' ? (
           <Input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
         ) : (
-          <>
-            <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} placeholder="Data de início" />
-            <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} placeholder="Data de término" />
-          </>
+          <Input type="week" value={selectedWeek} onChange={e => setSelectedWeek(e.target.value)} />
         )}
-
         <Button onClick={generatePDF}>Gerar PDF</Button>
-        <CloseButton onClick={onClose}>Fechar</CloseButton>
+        <Button onClick={onClose}>Fechar</Button>
       </ModalContent>
     </Modal>
   );
 };
 
-// Estilização da modal com aparência moderna
 const Modal = styled.div`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
-  animation: fadeIn 0.3s ease;
 `;
 
 const ModalContent = styled.div`
-  background: #fff;
+  background: #f9f9f9;
   padding: 30px;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  width: 90%;
   max-width: 500px;
-  animation: slideUp 0.3s ease;
-`;
+  width: 90%;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+  text-align: center;
 
-const Title = styled.h2`
-  margin-bottom: 20px;
-  font-size: 24px;
-  color: #007BFF;
+  h2 {
+    color: #333;
+    font-size: 1.6em;
+    margin-bottom: 20px;
+  }
 `;
 
 const Select = styled.select`
   padding: 12px;
-  margin-bottom: 20px;
-  border: 1px solid #ddd;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
   border-radius: 5px;
   width: 100%;
-  font-size: 16px;
 `;
 
 const Input = styled.input`
   padding: 12px;
-  margin: 8px 0;
-  border: 1px solid #ddd;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
   border-radius: 5px;
   width: 100%;
-  font-size: 16px;
 `;
 
 const Button = styled.button`
-  padding: 12px 24px;
-  background-color: #007BFF;
-  color: #FFF;
+  padding: 12px 25px;
+  margin: 10px;
+  background-color: #4CAF50;
+  color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
-  margin-top: 15px;
-  transition: background 0.3s;
+  font-size: 1em;
 
   &:hover {
-    background-color: #0056b3;
+    background-color: #45a049;
   }
-`;
 
-const CloseButton = styled(Button)`
-  background-color: #dc3545;
-
-  &:hover {
-    background-color: #c82333;
+  &:active {
+    background-color: #388e3c;
   }
 `;
 
