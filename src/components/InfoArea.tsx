@@ -37,7 +37,7 @@ export const InfoArea = ({ currentMonth, onMonthChange, income, expense }: Props
         <StyledResumeItem
           title='Balanço'
           value={income - expense}
-          color={(income - expense) < 0 ? 'red' : 'green'}
+          color={(income - expense) < 0 ? 'red' : '#00e400'}
         />
       </ResumeArea>
     </Container>
@@ -45,7 +45,7 @@ export const InfoArea = ({ currentMonth, onMonthChange, income, expense }: Props
 }
 
 const Container = styled.div`
-  background-color: #ffffff; /* Background branco */
+  background-color: #2c3e50; /* Background branco */
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Sombra sutil */
   border-radius: 12px;
   padding: 20px;
@@ -53,6 +53,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  color: #fff;
 
   @media (min-width: 768px) {
     flex-direction: row;
@@ -66,9 +67,11 @@ const MonthArea = styled.div`
   align-items: center;
   justify-content: center;
   padding: 10px;
+  color: #fff;
 
   @media (min-width: 768px) {
     justify-content: flex-start;
+    color: #fff;
   }
 `;
 
@@ -78,6 +81,7 @@ const MonthArrow = styled.div`
   font-size: 30px; /* Aumentar o tamanho do ícone */
   cursor: pointer;
   transition: color 0.3s;
+  color: #fff;
 
   &:hover {
     color: #007bff; /* Cor ao passar o mouse */
@@ -89,13 +93,13 @@ const MonthTitle = styled.div`
   text-align: center;
   font-size: 1.8em; /* Aumentar o tamanho do texto */
   font-weight: bold; /* Texto em negrito */
-  color: #343a40; /* Cor do texto escuro */
+  color: #fff;
 `;
 
 const ResumeArea = styled.div`
   flex: 2;
   display: flex;
-  font-size: 20px; /* Aumentar o tamanho do ícone */
+  font-size: 18px; /* Aumentar o tamanho do ícone */
   flex-wrap: wrap;
   justify-content: center;
   gap: 40px; /* Espaço entre os itens */

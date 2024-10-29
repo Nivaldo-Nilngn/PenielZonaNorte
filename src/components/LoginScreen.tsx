@@ -59,13 +59,14 @@ const Container = styled.div`
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background: linear-gradient(135deg, #2c3e50, #34495e);
+  background: #2c3e50;
 `;
 
 const LoginBox = styled.div`
   background-color: rgba(255, 255, 255, 0.9);
   padding: 30px;
-  width: 100%;margin: 20px;
+  width: 100%;
+  margin: 20px;
   max-width: 400px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   border-radius: 10px;

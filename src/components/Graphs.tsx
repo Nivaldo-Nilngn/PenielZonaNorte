@@ -103,13 +103,16 @@ const Graphs = ({ items }: Props) => {
 
   // Filter items based on selected date and showAll state
   const filteredItems = showAll
-    ? items 
+    ? items
     : selectedDate
       ? items.filter(item => item.date.toISOString().slice(0, 10) === selectedDate)
       : items;
 
-  // Calculate total value
-  const totalValue = filteredItems.reduce((total, item) => total + item.value, 0);
+  // Calculate total value considering both income and expenses
+  const totalValue = filteredItems.reduce((total, item) => {
+    // Adiciona o valor se for uma entrada, subtrai se for uma saída
+    return total + (categories[item.category]?.expense ? -item.value : item.value);
+  }, 0);
 
   return (
     <Container>
@@ -296,14 +299,18 @@ const InputContainer = styled.div`
 `;
 
 const DateInput = styled.input`
-  padding: 10px;
+  height: 40px;
+  padding: 0 1px;
+  border: 1px solid #2980b9;
+  background-color: #f0f8ff;
   border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 16px;
-
+  font-size: 20px;
+  transition: border 0.3s;
+  
   &:focus {
+    border-color: #1a5276;
+    box-shadow: 0 0 5px rgba(0, 139, 200, 0.5);
     outline: none;
-    border-color: #3498db;
   }
 `;
 
