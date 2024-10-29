@@ -13,8 +13,9 @@ interface PDFModalProps {
   selectedYear: string;
   setSelectedMonth: (month: string) => void;
   setSelectedYear: (year: string) => void;
-  headerTitle: string; // Adicionando a nova prop
+  headerTitle: string; // Nova prop para o título do header
 }
+
 
 const PDFModal: React.FC<PDFModalProps> = ({
   show,
@@ -24,7 +25,7 @@ const PDFModal: React.FC<PDFModalProps> = ({
   selectedYear,
   setSelectedMonth,
   setSelectedYear,
-  headerTitle, // Recebendo a nova prop
+  headerTitle, // Recebendo a prop
 }) => {
   const [reportType, setReportType] = useState<'monthly' | 'daily'>('monthly');
   const [selectedDate, setSelectedDate] = useState('');
@@ -45,8 +46,8 @@ const PDFModal: React.FC<PDFModalProps> = ({
 
   const generatePDF = () => {
     const doc = new jsPDF();
-    let filteredItems = [];
 
+    let filteredItems = [];
     if (reportType === 'monthly') {
       filteredItems = filteredList.filter(item => {
         const itemDate = new Date(item.date);
@@ -62,7 +63,7 @@ const PDFModal: React.FC<PDFModalProps> = ({
 
     doc.setFontSize(20);
     doc.text(
-      "RELATÓRIO FINANCEIRO - IGREJA PENIEL ZONA NORTE",
+      `RELATÓRIO FINANCEIRO - ${headerTitle.toUpperCase()}`, // Dinâmico
       doc.internal.pageSize.getWidth() / 2,
       16,
       { align: 'center' }
@@ -130,8 +131,7 @@ const PDFModal: React.FC<PDFModalProps> = ({
 
     doc.text(balanceText, doc.internal.pageSize.getWidth() - 14, finalY, { align: 'right' });
 
-    // Mudando o nome do arquivo PDF gerado
-    doc.save(`${headerTitle.replace(/\s+/g, '_')}_${reportType === 'monthly' ? `${selectedMonth}_${selectedYear}` : selectedDate}.pdf`);
+    doc.save(`relatorio_financeiro - ${headerTitle} - ${reportType === 'monthly' ? `${selectedMonth}_${selectedYear}` : selectedDate}.pdf`);
   };
 
   if (!show) return null;
@@ -174,78 +174,50 @@ const Modal = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;  /* Ensure modal is on top of other content */
 `;
 
 const ModalContent = styled.div`
-  background: linear-gradient(135deg, #ffffff, #f2f2f2);
+  background: white;
   padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   text-align: center;
-  width: 90%; /* Responsive width */
-  max-width: 500px; /* Maximum width for larger screens */
 
   h2 {
     margin-bottom: 20px;
-    font-size: 1.5em; /* Increase title size */
-    color: #333;
-  }
-
-  @media (max-width: 600px) {
-    padding: 15px;
-    h2 {
-      font-size: 1.25em; /* Smaller title on mobile */
-    }
   }
 `;
 
 const Select = styled.select`
-  padding: 12px;
+  padding: 10px;
   margin-bottom: 20px;
   border: 1px solid #ccc;
-  border-radius: 8px;
+  border-radius: 5px;
   width: 100%;
   box-sizing: border-box;
-  font-size: 1em; /* Increase font size */
-  background-color: #f9f9f9;
-
-  &:focus {
-    border-color: #007BFF;
-    outline: none;
-    background-color: #ffffff; /* Highlight background on focus */
-  }
 `;
 
 const Input = styled.input`
-  padding: 12px;
+  padding: 10px;
   margin-bottom: 20px;
   border: 1px solid #ccc;
-  border-radius: 8px;
+  border-radius: 5px;
   width: 100%;
   box-sizing: border-box;
-  font-size: 1em;
-
-  &:focus {
-    border-color: #007BFF;
-    outline: none;
-    background-color: #ffffff; /* Highlight background on focus */
-  }
 `;
 
 const Button = styled.button`
-  padding: 12px 20px;
+  padding: 10px 20px;
   margin: 5px;
   background-color: #007BFF;
   color: #FFF;
   border: none;
-  border-radius: 8px;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 1em;
 
   &:hover {
     background-color: #0056b3;
