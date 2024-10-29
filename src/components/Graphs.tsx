@@ -127,49 +127,49 @@ const Graphs = ({ items }: Props) => {
       <GraphsContainer>
         <GraphSection>
           <h3>Entradas e Saídas</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            {chartType === 'pie' ? (
-              <PieChart>
-                <Pie
-                  data={uniqueData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: R$ ${value.toFixed(2)}`}
-                  outerRadius="80%"
-                  dataKey="value"
-                >
-                  {uniqueData.map((entry: ChartData, index: number) => (
-                    <Cell key={`cell-${index}`} fill={entry.color || '#ddd'} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `R$ ${value}`} />
-                <Legend verticalAlign="bottom" height={36} />
-              </PieChart>
-            ) : chartType === 'column' ? (
-              <BarChart data={uniqueData}>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip formatter={(value) => `R$ ${value}`} />
-                <Legend />
-                <Bar dataKey="value" fill="#2980b9" onClick={handleClick} />
-              </BarChart>
-            ) : (
-              <LineChart data={uniqueData}>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip formatter={(value) => `R$ ${value}`} />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#2980b9"
-                  strokeWidth={2}
-                  dot={renderCustomDot}
-                />
-              </LineChart>
-            )}
-          </ResponsiveContainer>
+        <ResponsiveContainer width="100%" height={300}>
+  {chartType === 'pie' ? (
+    <PieChart>
+      <Pie
+        data={uniqueData}
+        cx="50%"
+        cy="50%"
+        labelLine={false}
+        label={({ name, value }) => `${name}: R$ ${value.toFixed(2)}`}
+        outerRadius="80%"
+        dataKey="value"
+      >
+        {uniqueData.map((entry: ChartData, index: number) => (
+          <Cell key={`cell-${index}`} fill={entry.color || '#ddd'} />
+        ))}
+      </Pie>
+      <Tooltip formatter={(value) => `R$ ${value}`} />
+      {/* Removido o Legend aqui */}
+    </PieChart>
+  ) : chartType === 'column' ? (
+    <BarChart data={uniqueData}>
+      <XAxis dataKey="name" />
+      <YAxis />
+      <Tooltip formatter={(value) => `R$ ${value}`} />
+      {/* Removido o Legend aqui */}
+      <Bar dataKey="value" fill="#2980b9" onClick={handleClick} />
+    </BarChart>
+  ) : (
+    <LineChart data={uniqueData}>
+      <XAxis dataKey="name" />
+      <YAxis />
+      <Tooltip formatter={(value) => `R$ ${value}`} />
+      {/* Removido o Legend aqui */}
+      <Line
+        type="monotone"
+        dataKey="value"
+        stroke="#2980b9"
+        strokeWidth={2}
+        dot={renderCustomDot}
+      />
+    </LineChart>
+  )}
+</ResponsiveContainer>
         </GraphSection>
       </GraphsContainer>
 
