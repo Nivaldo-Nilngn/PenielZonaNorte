@@ -45,15 +45,15 @@ export const InfoArea = ({ currentMonth, onMonthChange, income, expense }: Props
 }
 
 const Container = styled.div`
-  background-color: #FFF;
-  box-shadow: 0px 0px 5px #CCC;
-  border-radius: 10px;
+  background-color: #ffffff; /* Background branco */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+  border-radius: 12px;
   padding: 20px;
-  margin-top: 5px;
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  
+
   @media (min-width: 768px) {
     flex-direction: row;
     justify-content: space-between;
@@ -65,6 +65,7 @@ const MonthArea = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 10px;
 
   @media (min-width: 768px) {
     justify-content: flex-start;
@@ -74,35 +75,52 @@ const MonthArea = styled.div`
 const MonthArrow = styled.div`
   width: 40px;
   text-align: center;
-  font-size: 25px;
+  font-size: 30px; /* Aumentar o tamanho do ícone */
   cursor: pointer;
+  transition: color 0.3s;
+
+  &:hover {
+    color: #007bff; /* Cor ao passar o mouse */
+  }
 `;
 
 const MonthTitle = styled.div`
   flex: 1;
   text-align: center;
+  font-size: 1.8em; /* Aumentar o tamanho do texto */
+  font-weight: bold; /* Texto em negrito */
+  color: #343a40; /* Cor do texto escuro */
 `;
 
 const ResumeArea = styled.div`
   flex: 2;
   display: flex;
+  font-size: 20px; /* Aumentar o tamanho do ícone */
   flex-wrap: wrap;
   justify-content: center;
-  gap: 20px; /* Espaço horizontal e vertical entre os itens */
+  gap: 40px; /* Espaço entre os itens */
   margin-top: 10px;
 
-  @media (min-width: 768px) {
+  @media (min-width: 900px) {
     margin-top: 0;
+  font-size: 30px; /* Aumentar o tamanho do ícone */
     justify-content: flex-start;
   }
 `;
 
-// Ajuste da margem entre os itens
 const StyledResumeItem = styled(ResumeItem)`
-  margin: 10px 20px;
+  padding: 30px; /* Espaçamento interno */
+  border-radius: 8px; /* Bordas arredondadas */
+  background-color: #f0f0f0; /* Fundo claro para cada item */
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: scale(1.05); /* Efeito de aumento ao passar o mouse */
+  }
   
   @media (min-width: 768px) {
-    margin: 0 20px;
+    margin: 0 15px; /* Margens em telas maiores */
   }
 `;
 

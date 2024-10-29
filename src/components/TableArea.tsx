@@ -1,11 +1,25 @@
 import styled from "styled-components";
 import { Item } from '../types/Item';
-import { TableItem } from '../components/TableItem';
+import { TableItem as OriginalTableItem } from '../components/TableItem';
+
+type TableItemProps = {
+  item: Item;
+  onDelete: () => void;
+};
+
+const StyledTableItem = styled(OriginalTableItem)<TableItemProps>`
+  transition: background-color 0.3s;
+  padding: 12px 15px; /* Padding for the table items */
+
+  &:hover {
+    background-color: #f5f8fa; /* Light hover effect */
+  }
+`;
 
 type Props = {
   list: Item[];
   onDelete: (item: Item) => void;
-  actionsEnabled?: boolean; // Propriedade para controlar a habilitação das ações
+  actionsEnabled?: boolean;
 };
 
 export const TableArea = ({ list, onDelete, actionsEnabled = true }: Props) => {
@@ -29,10 +43,10 @@ export const TableArea = ({ list, onDelete, actionsEnabled = true }: Props) => {
           </tr>
         ) : (
           list.map((item, index) => (
-            <TableItem 
+            <StyledTableItem 
               key={index} 
               item={item}
-              onDelete={actionsEnabled ? () => onDelete(item) : () => {}} // Passando uma função vazia
+              onDelete={actionsEnabled ? () => onDelete(item) : () => {}}
             />
           ))
         )}
@@ -50,15 +64,29 @@ export const TableArea = ({ list, onDelete, actionsEnabled = true }: Props) => {
 
 const Table = styled.table`
   width: 100%;
+  max-width: 100%; /* Evitar que a tabela exceda a largura da tela */
   background-color: #fff;
-  padding: 20px;
-  box-shadow: 0px 0px 5px #ccc;
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
   margin-top: 20px;
+  overflow: hidden;
+  border-collapse: collapse; /* Para evitar espaços extras entre as células */
 `;
 
 const TableHeadColumn = styled.th<{ width?: number }>`
-  padding: 10px 0;
-  text-align: left;
+  padding: 12px 15px;
+  text-align: center;
   width: ${(props) => (props.width ? `${props.width}px` : 'auto')};
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  color: #fff; /* White text color for better contrast */
+  font-weight: bold;
+  border-bottom: 2px solid #ddd;
+
+  @media (max-width: 768px) {
+    font-size: 12px; /* Tamanho da fonte menor em telas pequenas */
+    padding: 10px 5px; /* Ajustar o padding em telas pequenas */
+  }
 `;
+
+// Você pode adicionar um estilo semelhante para TableColumn, se necessário
+

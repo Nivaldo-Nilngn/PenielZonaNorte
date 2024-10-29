@@ -11,7 +11,7 @@ type Props = {
   dbName: string; // Adicione esta linha
 };
 
-export const InputArea = ({ onAdd }: Props) => {
+const InputArea = ({ onAdd }: Props) => {
   const [dateField, setDateField] = useState('');
   const [categoryField, setCategoryField] = useState('');
   const [titleField, setTitleField] = useState('');
@@ -102,6 +102,7 @@ export const InputArea = ({ onAdd }: Props) => {
     setValueField(0);
   };
 
+
   return (
     <Container>
       <InputLabel>
@@ -112,9 +113,15 @@ export const InputArea = ({ onAdd }: Props) => {
         <InputTitle>Categoria</InputTitle>
         <Select value={categoryField} onChange={e => setCategoryField(e.target.value)}>
           <option value="">Selecione uma categoria</option>
-          {categoryKeys.map((key, index) => (
-            <option key={index} value={key}>{categories[key].title}</option>
-          ))}
+          {categoryKeys.map((key, index) => {
+            const category = categories[key];
+            const color = category.expense ? 'red' : 'green';
+            return (
+              <option key={index} value={key} style={{ color }}>
+                {category.title}
+              </option>
+            );
+          })}
         </Select>
       </InputLabel>
       <InputLabel>
@@ -123,8 +130,14 @@ export const InputArea = ({ onAdd }: Props) => {
       </InputLabel>
       <InputLabel>
         <InputTitle>Valor</InputTitle>
-        <Input type='number' value={valueField} onChange={e => setValueField(parseFloat(e.target.value))} />
+        <Input
+          type='number'
+          value={valueField > 0 ? valueField : ''} // Display an empty string when valueField is 0
+          onChange={e => setValueField(Number(e.target.value))} // Converte o valor para número
+          placeholder=" Digite o valor" // Set placeholder text
+        />
       </InputLabel>
+
       <InputLabel>
         <InputTitle>&nbsp;</InputTitle>
         <Button onClick={handleAddEvent}>Adicionar</Button>
@@ -137,32 +150,50 @@ export const InputArea = ({ onAdd }: Props) => {
 const InputTitle = styled.div`
   font-weight: bold;
   margin-bottom: 5px;
+  color: #2c3e50; /* Cor do título */
 `;
 
 const Input = styled.input`
   width: 100%;
-  height: 30px;
-  padding: 0 5px;
-  border: 1px solid lightblue;
-  border-radius: 5px;
+  height: 40px;
+  padding: 0 1px;
+  border: 1px solid #2980b9;
+  background-color: #f0f8ff;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border 0.3s;
+  
+  &:focus {
+    border-color: #1a5276;
+    box-shadow: 0 0 5px rgba(0, 139, 200, 0.5);
+    outline: none;
+  }
 `;
 
 const Select = styled.select`
   width: 100%;
-  height: 30px;
-  padding: 0 5px;
-  border: 1px solid lightblue;
-  border-radius: 5px;
+  height: 43px;
+  padding: 0 10px;
+  border: 1px solid #2980b9;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: #f0f8ff;
+  transition: border 0.3s;
+
+  &:focus {
+    border-color: #1a5276;
+    outline: none;
+  }
 `;
 
 const Container = styled.div`
-  background-color: #FFF;
-  box-shadow: 0px 0px 5px #CCC;
+  background-color: #ffffff;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
   padding: 20px;
   margin-top: 20px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
 
   @media (max-width: 768px) {
@@ -182,20 +213,26 @@ const InputLabel = styled.label`
 
 const Button = styled.button`
   width: 100%;
-  height: 30px;
+  height: 40px;
   padding: 0 5px;
-  border: 1px solid lightblue;
-  border-radius: 5px;
+  border: none;
+  border-radius: 8px;
   background-color: #2980b9;
   color: white;
   cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
 
   &:hover {
     background-color: #1a5276;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
   }
-  
+
   @media (max-width: 768px) {
-    height: 40px;
+    height: 45px;
   }
 `;
+
+// Export the InputArea component
+export { InputArea };
