@@ -26,25 +26,25 @@ const PDFModal: React.FC<PDFModalProps> = ({
 }) => {
   const [reportType, setReportType] = useState<'monthly' | 'weekly' | 'daily'>('monthly');
   const [selectedDate, setSelectedDate] = useState('');
-  
-  const categoryTranslations = {
-    tithe: "Dízimo",
-    offering: "Oferta",
-    specialOffering: "Oferta Especial",
-    billsToPay: "Aluguel",
-    electricity: "Conta de Luz",
-    water: "Conta de Água",
-    internet: "Internet",
-    waterPurchase: "Compra de Água",
-    cleaningProducts: "Produtos de Limpeza",
-    disposableCups: "Copos Descartáveis",
-    genericExpense: "Saída"
+
+  const categoryTranslations: { [key: string]: string } = {
+    tithe: 'Dízimo',
+    offering: 'Oferta',
+    specialOffering: 'Oferta Especial',
+    billsToPay: 'Contas a Pagar',
+    electricity: 'Eletricidade',
+    water: 'Água',
+    internet: 'Internet',
+    waterPurchase: 'Compra de Água',
+    cleaningProducts: 'Produtos de Limpeza',
+    disposableCups: 'Copos Descartáveis',
+    genericExpense: 'Despesa Genérica',
   };
 
   const generatePDF = () => {
     const doc = new jsPDF();
-
     let filteredItems = [];
+
     if (reportType === 'monthly') {
       filteredItems = filteredList.filter(item => {
         const itemDate = new Date(item.date);
@@ -53,8 +53,6 @@ const PDFModal: React.FC<PDFModalProps> = ({
         return itemMonth === selectedMonth && itemYear === selectedYear;
       });
     } else if (reportType === 'weekly') {
-      // Define the date range for the week here based on selectedDate
-      // Assuming selectedDate is the start of the week
       const startDate = new Date(selectedDate);
       const endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + 6);
