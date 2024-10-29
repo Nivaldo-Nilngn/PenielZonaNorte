@@ -24,21 +24,21 @@ const PDFModal: React.FC<PDFModalProps> = ({
   setSelectedMonth,
   setSelectedYear,
 }) => {
-  const [reportType, setReportType] = useState<'monthly' | 'weekly' | 'daily'>('monthly');
+  const [reportType, setReportType] = useState<'monthly' | 'daily'>('monthly');
   const [selectedDate, setSelectedDate] = useState('');
 
   const categoryTranslations: { [key: string]: string } = {
-    tithe: 'Dízimo',
-    offering: 'Oferta',
-    specialOffering: 'Oferta Especial',
-    billsToPay: 'Contas a Pagar',
-    electricity: 'Eletricidade',
-    water: 'Água',
-    internet: 'Internet',
-    waterPurchase: 'Compra de Água',
-    cleaningProducts: 'Produtos de Limpeza',
-    disposableCups: 'Copos Descartáveis',
-    genericExpense: 'Despesa Genérica',
+    tithe: "Dízimo",
+    offering: "Oferta",
+    specialOffering: "Oferta Especial",
+    billsToPay: "Aluguel",
+    electricity: "Conta de Luz",
+    water: "Conta de Água",
+    internet: "Internet",
+    waterPurchase: "Compra de Água",
+    cleaningProducts: "Produtos de Limpeza",
+    disposableCups: "Copos Descartáveis",
+    genericExpense: "Saída"
   };
 
   const generatePDF = () => {
@@ -51,15 +51,6 @@ const PDFModal: React.FC<PDFModalProps> = ({
         const itemMonth = (itemDate.getMonth() + 1).toString().padStart(2, '0');
         const itemYear = itemDate.getFullYear().toString();
         return itemMonth === selectedMonth && itemYear === selectedYear;
-      });
-    } else if (reportType === 'weekly') {
-      const startDate = new Date(selectedDate);
-      const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + 6);
-
-      filteredItems = filteredList.filter(item => {
-        const itemDate = new Date(item.date);
-        return itemDate >= startDate && itemDate <= endDate;
       });
     } else {
       filteredItems = filteredList.filter(item => 
@@ -137,7 +128,7 @@ const PDFModal: React.FC<PDFModalProps> = ({
 
     doc.text(balanceText, doc.internal.pageSize.getWidth() - 14, finalY, { align: 'right' });
 
-    doc.save(`relatorio_financeiro_${reportType}_${reportType === 'weekly' ? `semana_${selectedDate}` : (reportType === 'monthly' ? `${selectedMonth}_${selectedYear}` : selectedDate)}.pdf`);
+    doc.save(`relatorio_financeiro_${reportType === 'monthly' ? `${selectedMonth}_${selectedYear}` : selectedDate}.pdf`);
   };
 
   if (!show) return null;
@@ -146,9 +137,8 @@ const PDFModal: React.FC<PDFModalProps> = ({
     <Modal>
       <ModalContent>
         <h2>Selecionar Tipo de Relatório</h2>
-        <Select onChange={e => setReportType(e.target.value as 'monthly' | 'weekly' | 'daily')}>
+        <Select onChange={e => setReportType(e.target.value as 'monthly' | 'daily')}>
           <option value="monthly">Mensal</option>
-          <option value="weekly">Semanal</option>
           <option value="daily">Diário</option>
         </Select>
         {reportType === 'monthly' ? (
@@ -168,10 +158,8 @@ const PDFModal: React.FC<PDFModalProps> = ({
             onChange={e => setSelectedDate(e.target.value)}
           />
         )}
-        <ButtonContainer>
-          <Button onClick={generatePDF}>Gerar PDF</Button>
-          <Button onClick={onClose}>Fechar</Button>
-        </ButtonContainer>
+        <Button onClick={generatePDF}>Gerar PDF</Button>
+        <Button onClick={onClose}>Fechar</Button>
       </ModalContent>
     </Modal>
   );
@@ -183,57 +171,78 @@ const Modal = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;  /* Ensure modal is on top of other content */
 `;
 
 const ModalContent = styled.div`
-  background: #f9f9f9;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-  max-width: 450px;
-  width: 90%;
+  background: linear-gradient(135deg, #ffffff, #f2f2f2);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   text-align: center;
-  
+  width: 90%; /* Responsive width */
+  max-width: 500px; /* Maximum width for larger screens */
+
   h2 {
+    margin-bottom: 20px;
+    font-size: 1.5em; /* Increase title size */
     color: #333;
-    margin-bottom: 24px;
+  }
+
+  @media (max-width: 600px) {
+    padding: 15px;
+    h2 {
+      font-size: 1.25em; /* Smaller title on mobile */
+    }
   }
 `;
 
 const Select = styled.select`
   padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  width: 100%;
   margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 1em; /* Increase font size */
+  background-color: #f9f9f9;
+
+  &:focus {
+    border-color: #007BFF;
+    outline: none;
+    background-color: #ffffff; /* Highlight background on focus */
+  }
 `;
 
 const Input = styled.input`
   padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  width: 100%;
   margin-bottom: 20px;
-`;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 1em;
 
-const ButtonContainer = styled.div`
-  display: flex;
-  gap: 10px;
-  justify-content: center;
+  &:focus {
+    border-color: #007BFF;
+    outline: none;
+    background-color: #ffffff; /* Highlight background on focus */
+  }
 `;
 
 const Button = styled.button`
   padding: 12px 20px;
+  margin: 5px;
   background-color: #007BFF;
   color: #FFF;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
+  font-size: 1em;
 
   &:hover {
     background-color: #0056b3;
