@@ -318,7 +318,7 @@ const StyledTable = styled.table`
   }
 
   th {
-    background-color: #3498db;
+    background: #34495e;
     color: white;
   }
 

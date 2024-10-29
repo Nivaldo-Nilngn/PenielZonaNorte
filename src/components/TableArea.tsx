@@ -77,7 +77,7 @@ const TableHeadColumn = styled.th<{ width?: number }>`
   padding: 12px 15px;
   text-align: center;
   width: ${(props) => (props.width ? `${props.width}px` : 'auto')};
-  background: linear-gradient(135deg, #2c3e50, #34495e);
+  background: #34495e;
   color: #fff; /* White text color for better contrast */
   font-weight: bold;
   border-bottom: 2px solid #ddd;
