@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.netlify.igrejapeniel.twa",
+        "sha256_cert_fingerprints": ["76:4D:C5:92:C4:C8:01:75:B8:EB:D4:D3:49:34:3F:EE:20:51:60:9F:0E:F6:DF:37:F3:75:EA:A1:89:9B:5B:4D"]
+      }
+    }]
