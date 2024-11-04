@@ -1,17 +1,18 @@
 {
+  "short_name": "Peniel",
   "name": "Peniel",
+  "start_url": ".",
+  "display": "standalone",
   "theme_color": "#2b3d4f",
   "background_color": "#2c3e50",
-  "short_name": "Peniel",
   "id": "Peniel",
   "description": "Peniel financeiro",
+  "lang": "pt",
+  "orientation": "any",
   "categories": [
     "finance"
   ],
-  "share_target": {
-    "method": "GET"
-  },
-  "start_url": "/",
+  
   "icons": [
     {
       "src": "/img/windows11/SmallTile.scale-100.png",
