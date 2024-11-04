@@ -25,6 +25,12 @@
       "type": "image/png"
     },
     {
+      "src": "/img/monochrome.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    },
+    {
       "src": "/img/windows11/SmallTile.scale-125.png",
       "sizes": "89x89"
     },
