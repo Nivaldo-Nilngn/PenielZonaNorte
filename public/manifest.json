@@ -11,7 +11,7 @@
   "share_target": {
     "method": "GET"
   },
-
+  "start_url": "/",
   "icons": [
     {
       "src": "/img/windows11/SmallTile.scale-100.png",
