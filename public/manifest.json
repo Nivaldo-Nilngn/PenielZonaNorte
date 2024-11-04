@@ -25,10 +25,22 @@
       "type": "image/png"
     },
     {
+      "purpose": "any",
+      "sizes": "512x512",
+      "src": "./img/maskable.png",
+      "type": "image/png"
+    },
+    {
       "src": "/img/monochrome.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
+    },
+    {
+      "src": "/img/monochrome.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
     },
     {
       "src": "/img/windows11/SmallTile.scale-125.png",
