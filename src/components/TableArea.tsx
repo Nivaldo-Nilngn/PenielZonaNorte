@@ -50,9 +50,12 @@ type Props = {
 };
 
 export const TableArea = ({ list, onDelete, actionsEnabled = true }: Props) => {
+  // Ordenar a lista de itens por data
+  const sortedList = [...list].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
   return (
     <Container>
-      {list.length === 0 ? (
+      {sortedList.length === 0 ? (
         <EmptyMessage>Nenhum item encontrado.</EmptyMessage>
       ) : (
         <>
@@ -68,7 +71,7 @@ export const TableArea = ({ list, onDelete, actionsEnabled = true }: Props) => {
                 </tr>
               </thead>
               <tbody>
-                {list.map((item, index) => (
+                {sortedList.map((item, index) => (
                   <TableRow key={index}>
                     <TableCell data-label="Data">{formatDate(item.date)}</TableCell>
                     <TableCell data-label="Categoria" style={{ color: categories[item.category]?.color || "#000" }}>
@@ -87,7 +90,7 @@ export const TableArea = ({ list, onDelete, actionsEnabled = true }: Props) => {
             </Table>
           </TableContainer>
           <CardContainer>
-            {list.map((item, index) => (
+            {sortedList.map((item, index) => (
               <TableItem 
                 key={index} 
                 item={item}
@@ -97,7 +100,7 @@ export const TableArea = ({ list, onDelete, actionsEnabled = true }: Props) => {
           </CardContainer>
         </>
       )}
-      {!actionsEnabled && list.length > 0 && (
+      {!actionsEnabled && sortedList.length > 0 && (
         <DisabledActionsMessage>
           A exclusão de itens está desabilitada no momento.
         </DisabledActionsMessage>
