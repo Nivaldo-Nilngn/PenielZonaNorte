@@ -47,11 +47,12 @@ const App = () => {
   }, []);
 
   const fetchDatabaseName = (uid: string) => {
-    const databaseNames = ['PenielZonaNote', 'PenielIbura', 'PenielIpsep'];
+    const databaseNames = ['PenielZonaNote', 'PenielIbura', 'PenielIpsep', 'Teste'];
     const churchNames = {
       PenielZonaNote: 'IGREJA PENIEL ZONA NORTE',
       PenielIbura: 'IGREJA PENIEL IBURA',
       PenielIpsep: 'IGREJA PENIEL IPSEP',
+      Teste: 'ADMIN'
     };
 
     databaseNames.forEach(dbName => {
