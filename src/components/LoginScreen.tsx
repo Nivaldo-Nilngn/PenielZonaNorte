@@ -58,8 +58,14 @@ const Container = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100vh;
   background: #2c3e50;
+  height: 100%;
+  width: 100%;
+   
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
 `;
 
 const LoginBox = styled.div`
