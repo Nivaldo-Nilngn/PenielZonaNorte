@@ -54,21 +54,15 @@ const LoginScreen = () => {
 };
 
 // Componentes estilizados
-const Container = styled.div`
+const Container = styled.div
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100vh;
   background: #2c3e50;
-  height: 100%;
-  width: 100%;
-   
-   position: absolute;
-   top: 50%;
-   left: 50%;
-   transform: translate(-50%, -50%);
-`;
+;
 
-const LoginBox = styled.div`
+const LoginBox = styled.div
   background-color: rgba(255, 255, 255, 0.9);
   padding: 30px;
   width: 100%;
@@ -89,21 +83,21 @@ const LoginBox = styled.div`
       transform: translateY(0);
     }
   }
-`;
+;
 
-const Logo = styled.img`
+const Logo = styled.img
   width: 250px;  
   margin-top: -40px; 
   margin-bottom: 5px; 
-`;
+;
 
-const Title = styled.h2`
+const Title = styled.h2
   margin-bottom: 20px;
   color: #333;
   font-family: 'Georgia', serif; 
-`;
+;
 
-const Input = styled.input`
+const Input = styled.input
   width: 90%;
   padding: 10px; 
   margin: 10px 0;
@@ -117,9 +111,9 @@ const Input = styled.input`
     outline: none;
     box-shadow: 0 0 5px rgba(41, 128, 185, 0.5); 
   }
-`;
+;
 
-const ActionButton = styled.button`
+const ActionButton = styled.button
   width: 100%;
   padding: 12px;
   margin-top: 30px; 
@@ -135,12 +129,12 @@ const ActionButton = styled.button`
   &:hover { 
     background-color: #1a5276; 
   }
-`;
+;
 
-const ErrorMessage = styled.p`
+const ErrorMessage = styled.p
   color: red;
   font-size: 14px;
   margin-bottom: 10px; 
-`;
+;
 
 export default LoginScreen;
