@@ -47,74 +47,8 @@ const App = () => {
     PenielIpsep: 'IGREJA PENIEL IPSEP'
   };
 
-  // Monitoramento da autenticação
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, user => {
-      setIsAuthenticated(!!user);
-      if (user) {
-        localStorage.setItem("uid", user.uid);
-        fetchDatabaseName(user.uid);
-        // Verifica se o UID existe em Admin/usuarios/{uid} (para exibir o botão Igrejas)
-        const adminRef = ref(db, `Admin/usuarios/${user.uid}`);
-        get(adminRef).then(snapshot => {
-          if (snapshot.exists() && snapshot.val() === true) {
-            setIsAdmin(true);
-          } else {
-            setIsAdmin(false);
-          }
-        }).catch(error => {
-          console.error("Erro ao verificar acesso admin:", error);
-          setIsAdmin(false);
-        });
-        // Busca em qual igreja o usuário está cadastrado na área admin/usuarios
-        fetchCurrentChurchAdmin(user.uid);
-      } else {
-        localStorage.removeItem("uid");
-        setDbName('');
-        setIsAdmin(false);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
 
-  // Função para buscar o nome do banco de dados (para exibição de dados e cabeçalho)
-  const fetchDatabaseName = (uid: string) => {
-    // Procura nas áreas de usuários (não na área admin) para definir dbName e headerText
-    const churchNamesForHeader = {
-      PenielZonaNote: 'IGREJA PENIEL ZONA NORTE',
-      PenielIbura: 'IGREJA PENIEL IBURA',
-      PenielIpsep: 'IGREJA PENIEL IPSEP'
-    };
 
-    databaseNames.forEach(dbNameItem => {
-      const usersRef = ref(db, `${dbNameItem}/usuarios`);
-      onValue(usersRef, snapshot => {
-        snapshot.forEach(childSnapshot => {
-          if (childSnapshot.key === uid) {
-            setDbName(dbNameItem);
-            setHeaderText(churchNamesForHeader[dbNameItem as keyof typeof churchNamesForHeader]);
-          }
-        });
-      });
-    });
-  };
-
-  // Função para buscar em qual igreja o UID está cadastrado na área admin/usuarios
-  const fetchCurrentChurchAdmin = async (uid: string) => {
-    for (const church of databaseNames) {
-      const churchAdminRef = ref(db, `${church}/usuarios/${uid}`);
-      try {
-        const snapshot = await get(churchAdminRef);
-        if (snapshot.exists() && snapshot.val() === true) {
-          setSelectedChurch(church);
-          return; // Encerra o loop ao encontrar a igreja
-        }
-      } catch (error) {
-        console.error("Erro ao buscar igreja atual:", error);
-      }
-    }
-  };
-  
 
   // Função para trocar de igreja
   const changeChurch = async (newChurch: string) => {
@@ -145,7 +79,44 @@ const App = () => {
     window.location.reload();
   };
 
-  // Busca os dados do banco (Firebase Realtime Database)
+  // Função para buscar o nome do banco de dados (para exibição de dados e cabeçalho)
+  const fetchDatabaseName = useCallback((uid: string) => {
+    const churchNamesForHeader = {
+      PenielZonaNote: 'IGREJA PENIEL ZONA NORTE',
+      PenielIbura: 'IGREJA PENIEL IBURA',
+      PenielIpsep: 'IGREJA PENIEL IPSEP'
+    };
+
+    databaseNames.forEach(dbNameItem => {
+      const usersRef = ref(db, `${dbNameItem}/usuarios`);
+      onValue(usersRef, snapshot => {
+        snapshot.forEach(childSnapshot => {
+          if (childSnapshot.key === uid) {
+            setDbName(dbNameItem);
+            setHeaderText(churchNamesForHeader[dbNameItem as keyof typeof churchNamesForHeader]);
+          }
+        });
+      });
+    });
+  }, [databaseNames]); // ✅ Corrigido: `databaseNames` usado corretamente como dependência
+
+  // Função para buscar em qual igreja o UID está cadastrado na área admin/usuarios
+  const fetchCurrentChurchAdmin = useCallback(async (uid: string) => {
+    for (const church of databaseNames) {
+      const churchAdminRef = ref(db, `${church}/usuarios/${uid}`);
+      try {
+        const snapshot = await get(churchAdminRef);
+        if (snapshot.exists() && snapshot.val() === true) {
+          setSelectedChurch(church);
+          return;
+        }
+      } catch (error) {
+        console.error("Erro ao buscar igreja atual:", error);
+      }
+    }
+  }, [databaseNames]); // ✅ Certifique-se de incluir `databaseNames` como dependência
+
+  // Função para buscar dados do banco de dados
   const fetchData = useCallback(async (uid: string) => {
     setLoading(true);
     const itemsRef = ref(db, `${dbName}`);
@@ -164,7 +135,35 @@ const App = () => {
       setList(data);
       setLoading(false);
     }, { onlyOnce: true });
-  }, [dbName]);
+  }, [dbName]); // ✅ Adicionado `dbName` corretamente
+
+
+
+  // Monitoramento da autenticação
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, user => {
+      setIsAuthenticated(!!user);
+      if (user) {
+        localStorage.setItem("uid", user.uid);
+        fetchDatabaseName(user.uid);
+
+        const adminRef = ref(db, `Admin/usuarios/${user.uid}`);
+        get(adminRef).then(snapshot => {
+          setIsAdmin(snapshot.exists() && snapshot.val() === true);
+        }).catch(error => {
+          console.error("Erro ao verificar acesso admin:", error);
+          setIsAdmin(false);
+        });
+
+        fetchCurrentChurchAdmin(user.uid);
+      } else {
+        localStorage.removeItem("uid");
+        setDbName('');
+        setIsAdmin(false);
+      }
+    });
+    return () => unsubscribe();
+  }, [fetchCurrentChurchAdmin, fetchDatabaseName]);
 
   // Quando houver mudança no dbName, busca os dados
   useEffect(() => {
@@ -172,8 +171,8 @@ const App = () => {
     if (uid && dbName && isAuthenticated) {
       fetchData(uid);
     }
-  }, [dbName, isAuthenticated]);
-  
+  }, [dbName, isAuthenticated, fetchData]);
+
 
   // Filtra a lista com base no mês/ano selecionados
   useEffect(() => {
@@ -321,10 +320,10 @@ const App = () => {
         )}
       </BodyStyled>
 
-      <ConfirmationModal 
-        show={showConfirmationModal} 
-        onClose={() => setShowConfirmationModal(false)} 
-        onConfirm={handleDeleteItem} 
+      <ConfirmationModal
+        show={showConfirmationModal}
+        onClose={() => setShowConfirmationModal(false)}
+        onConfirm={handleDeleteItem}
       />
     </Container>
   );
