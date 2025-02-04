@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import styled from "styled-components";
 import { Item } from './types/Item';
 import { db, auth } from './firebaseConfig';
@@ -40,15 +40,18 @@ const App = () => {
   const [showChurchSelection, setShowChurchSelection] = useState(false);
 
   // Array das igrejas disponíveis para troca (sem o "Teste")
-  const databaseNames = ['PenielZonaNote', 'PenielIbura', 'PenielIpsep'];
+
+  const databaseNames = useMemo(() => [
+    'PenielZonaNote',
+    'PenielIbura',
+    'PenielIpsep'
+  ], []); // ✅ Apenas será recriado se necessário
+  
   const churchNames: { [key: string]: string } = {
     PenielZonaNote: 'IGREJA PENIEL ZONA NORTE',
     PenielIbura: 'IGREJA PENIEL IBURA',
     PenielIpsep: 'IGREJA PENIEL IPSEP'
   };
-
-
-
 
   // Função para trocar de igreja
   const changeChurch = async (newChurch: string) => {
@@ -81,24 +84,24 @@ const App = () => {
 
   // Função para buscar o nome do banco de dados (para exibição de dados e cabeçalho)
   const fetchDatabaseName = useCallback((uid: string) => {
-    const churchNamesForHeader = {
-      PenielZonaNote: 'IGREJA PENIEL ZONA NORTE',
-      PenielIbura: 'IGREJA PENIEL IBURA',
-      PenielIpsep: 'IGREJA PENIEL IPSEP'
-    };
+  const churchNamesForHeader = {
+    PenielZonaNote: 'IGREJA PENIEL ZONA NORTE',
+    PenielIbura: 'IGREJA PENIEL IBURA',
+    PenielIpsep: 'IGREJA PENIEL IPSEP'
+  };
 
-    databaseNames.forEach(dbNameItem => {
-      const usersRef = ref(db, `${dbNameItem}/usuarios`);
-      onValue(usersRef, snapshot => {
-        snapshot.forEach(childSnapshot => {
-          if (childSnapshot.key === uid) {
-            setDbName(dbNameItem);
-            setHeaderText(churchNamesForHeader[dbNameItem as keyof typeof churchNamesForHeader]);
-          }
-        });
+  databaseNames.forEach(dbNameItem => {
+    const usersRef = ref(db, `${dbNameItem}/usuarios`);
+    onValue(usersRef, snapshot => {
+      snapshot.forEach(childSnapshot => {
+        if (childSnapshot.key === uid) {
+          setDbName(dbNameItem);
+          setHeaderText(churchNamesForHeader[dbNameItem as keyof typeof churchNamesForHeader]);
+        }
       });
     });
-  }, [databaseNames]); // ✅ Corrigido: `databaseNames` usado corretamente como dependência
+  });
+}, [databaseNames]); // ✅ Agora `databaseNames` é estável
 
   // Função para buscar em qual igreja o UID está cadastrado na área admin/usuarios
   const fetchCurrentChurchAdmin = useCallback(async (uid: string) => {
@@ -114,8 +117,8 @@ const App = () => {
         console.error("Erro ao buscar igreja atual:", error);
       }
     }
-  }, [databaseNames]); // ✅ Certifique-se de incluir `databaseNames` como dependência
-
+  }, [databaseNames]); // ✅ `databaseNames` não muda a cada render
+  
   // Função para buscar dados do banco de dados
   const fetchData = useCallback(async (uid: string) => {
     setLoading(true);
