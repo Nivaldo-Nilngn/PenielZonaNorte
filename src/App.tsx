@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import styled from "styled-components";
 import { Item } from './types/Item';
 import { db, auth } from './firebaseConfig';
-import { ref, onValue, remove, get } from 'firebase/database';
+import { ref, onValue, remove, get, set } from 'firebase/database';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import LoginScreen from './components/LoginScreen';
 import { getCurrentMonth, filterListByMonth } from './helpers/dateFilter';
@@ -16,6 +16,7 @@ import ConfirmationModal from './components/ConfirmationModal';
 import logo from './assets/logoBranco.png';
 
 const App = () => {
+  // Estados de controle
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [list, setList] = useState<Item[]>([]);
   const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
@@ -31,43 +32,120 @@ const App = () => {
   const [dbName, setDbName] = useState('');
   const [headerText, setHeaderText] = useState('');
   const [loading, setLoading] = useState(true);
+  // Estado para controle de acesso ao botão "Igrejas"
+  const [isAdmin, setIsAdmin] = useState(false);
+  // Estado para armazenar a igreja (base de dados) atual em que o UID está cadastrado (na área admin/usuarios)
+  const [selectedChurch, setSelectedChurch] = useState('');
+  // Estado para exibir o painel de seleção de igreja
+  const [showChurchSelection, setShowChurchSelection] = useState(false);
 
+  // Array das igrejas disponíveis para troca (sem o "Teste")
+  const databaseNames = ['PenielZonaNote', 'PenielIbura', 'PenielIpsep'];
+  const churchNames: { [key: string]: string } = {
+    PenielZonaNote: 'IGREJA PENIEL ZONA NORTE',
+    PenielIbura: 'IGREJA PENIEL IBURA',
+    PenielIpsep: 'IGREJA PENIEL IPSEP'
+  };
+
+  // Monitoramento da autenticação
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, user => {
       setIsAuthenticated(!!user);
       if (user) {
         localStorage.setItem("uid", user.uid);
         fetchDatabaseName(user.uid);
+        // Verifica se o UID existe em Admin/usuarios/{uid} (para exibir o botão Igrejas)
+        const adminRef = ref(db, `Admin/usuarios/${user.uid}`);
+        get(adminRef).then(snapshot => {
+          if (snapshot.exists() && snapshot.val() === true) {
+            setIsAdmin(true);
+          } else {
+            setIsAdmin(false);
+          }
+        }).catch(error => {
+          console.error("Erro ao verificar acesso admin:", error);
+          setIsAdmin(false);
+        });
+        // Busca em qual igreja o usuário está cadastrado na área admin/usuarios
+        fetchCurrentChurchAdmin(user.uid);
       } else {
         localStorage.removeItem("uid");
         setDbName('');
+        setIsAdmin(false);
       }
     });
     return () => unsubscribe();
   }, []);
 
+  // Função para buscar o nome do banco de dados (para exibição de dados e cabeçalho)
   const fetchDatabaseName = (uid: string) => {
-    const databaseNames = ['PenielZonaNote', 'PenielIbura', 'PenielIpsep', 'Teste'];
-    const churchNames = {
+    // Procura nas áreas de usuários (não na área admin) para definir dbName e headerText
+    const churchNamesForHeader = {
       PenielZonaNote: 'IGREJA PENIEL ZONA NORTE',
       PenielIbura: 'IGREJA PENIEL IBURA',
-      PenielIpsep: 'IGREJA PENIEL IPSEP',
-      Teste: 'ADMIN'
+      PenielIpsep: 'IGREJA PENIEL IPSEP'
     };
 
-    databaseNames.forEach(dbName => {
-      const usersRef = ref(db, `${dbName}/usuarios`);
+    databaseNames.forEach(dbNameItem => {
+      const usersRef = ref(db, `${dbNameItem}/usuarios`);
       onValue(usersRef, snapshot => {
         snapshot.forEach(childSnapshot => {
           if (childSnapshot.key === uid) {
-            setDbName(dbName);
-            setHeaderText(churchNames[dbName as keyof typeof churchNames]);
+            setDbName(dbNameItem);
+            setHeaderText(churchNamesForHeader[dbNameItem as keyof typeof churchNamesForHeader]);
           }
         });
       });
     });
   };
 
+  // Função para buscar em qual igreja o UID está cadastrado na área admin/usuarios
+  const fetchCurrentChurchAdmin = async (uid: string) => {
+    for (const church of databaseNames) {
+      const churchAdminRef = ref(db, `${church}/usuarios/${uid}`);
+      try {
+        const snapshot = await get(churchAdminRef);
+        if (snapshot.exists() && snapshot.val() === true) {
+          setSelectedChurch(church);
+          return; // Encerra o loop ao encontrar a igreja
+        }
+      } catch (error) {
+        console.error("Erro ao buscar igreja atual:", error);
+      }
+    }
+  };
+  
+
+  // Função para trocar de igreja
+  const changeChurch = async (newChurch: string) => {
+    const uid = localStorage.getItem('uid');
+    if (!uid) return;
+
+    // Se o usuário já estiver cadastrado em uma igreja, removê-lo da atual
+    if (selectedChurch) {
+      const oldChurchRef = ref(db, `${selectedChurch}/usuarios/${uid}`);
+      try {
+        await remove(oldChurchRef);
+      } catch (error) {
+        console.error("Erro ao remover UID da igreja atual:", error);
+      }
+    }
+
+    // Adicionar o UID à nova igreja (na área admin/usuarios)
+    const newChurchRef = ref(db, `${newChurch}/usuarios/${uid}`);
+    try {
+      await set(newChurchRef, true);
+      console.log(`UID adicionado na igreja ${newChurch}`);
+    } catch (error) {
+      console.error("Erro ao adicionar UID na nova igreja:", error);
+    }
+
+    // Atualiza o estado e recarrega a página para refletir as mudanças
+    setSelectedChurch(newChurch);
+    window.location.reload();
+  };
+
+  // Busca os dados do banco (Firebase Realtime Database)
   const fetchData = useCallback(async (uid: string) => {
     setLoading(true);
     const itemsRef = ref(db, `${dbName}`);
@@ -88,18 +166,22 @@ const App = () => {
     }, { onlyOnce: true });
   }, [dbName]);
 
+  // Quando houver mudança no dbName, busca os dados
   useEffect(() => {
-    const uid = localStorage.getItem('uid');
-    if (uid && dbName) {
+    const uid = localStorage.getItem("uid");
+    if (uid && dbName && isAuthenticated) {
       fetchData(uid);
     }
-  }, [dbName, fetchData]);
+  }, [dbName, isAuthenticated]);
+  
 
+  // Filtra a lista com base no mês/ano selecionados
   useEffect(() => {
     const filtered = filterListByMonth(list, `${selectedYear}-${selectedMonth}`);
     setFilteredList(filtered);
   }, [list, selectedMonth, selectedYear]);
 
+  // Calcula receitas e despesas
   useEffect(() => {
     const incomeCount = filteredList.reduce((sum, item) => {
       return sum + (categories[item.category]?.expense ? 0 : item.value || 0);
@@ -155,7 +237,7 @@ const App = () => {
   };
 
   const handleCloseModal = () => {
-    setShowModal(false); // Atualiza o estado para fechar o modal
+    setShowModal(false); // Fecha o modal de PDF
   };
 
   if (!isAuthenticated) {
@@ -172,50 +254,72 @@ const App = () => {
 
   return (
     <Container>
-      <Header>
-        <HeaderContent>
-          <Logo src={logo} alt="Logo" />
-          <HeaderText>{headerText || 'IGREJA PENIEL'}</HeaderText> {/* Usa o headerText dinâmico */}
-        </HeaderContent>
-        <ButtonsWrapper>
-          <ToggleButton onClick={() => setShowGraphs(!showGraphs)}>
+      <HeaderStyled>
+        <HeaderContentStyled>
+          <LogoStyled src={logo} alt="Logo" />
+          <HeaderTextStyled>{headerText || 'IGREJA PENIEL'}</HeaderTextStyled>
+        </HeaderContentStyled>
+        <ButtonsWrapperStyled>
+          <ToggleButtonStyled onClick={() => setShowGraphs(!showGraphs)}>
             {showGraphs ? "Voltar" : "Ver Gráficos"}
-          </ToggleButton>
-          <ToggleButton onClick={() => setShowModal(true)}>
+          </ToggleButtonStyled>
+          <ToggleButtonStyled onClick={() => setShowModal(true)}>
             Gerar PDF
-          </ToggleButton>
-          <LogoutButton onClick={handleLogout}>Sair</LogoutButton>
-        </ButtonsWrapper>
-      </Header>
+          </ToggleButtonStyled>
+          {/* Botão "Igrejas" visível somente para administradores */}
+          {isAdmin && (
+            <ToggleButtonStyled onClick={() => setShowChurchSelection(!showChurchSelection)}>
+              Igrejas
+            </ToggleButtonStyled>
+          )}
+          <LogoutButtonStyled onClick={handleLogout}>Sair</LogoutButtonStyled>
+        </ButtonsWrapperStyled>
+      </HeaderStyled>
+
+      {/* Painel de seleção de igreja */}
+      {showChurchSelection && (
+        <ChurchSelectionContainer>
+          <SelectionTitle>Selecione a Igreja:</SelectionTitle>
+          <CurrentChurch>
+            Igreja Atual: {selectedChurch ? churchNames[selectedChurch] : "Nenhuma"}
+          </CurrentChurch>
+          {databaseNames.map(church => (
+            <ChurchButton
+              key={church}
+              onClick={() => changeChurch(church)}
+              disabled={selectedChurch === church}
+            >
+              {churchNames[church]}
+            </ChurchButton>
+          ))}
+        </ChurchSelectionContainer>
+      )}
 
       <PDFModal
-  show={showModal}
-  onClose={handleCloseModal}
-  filteredList={filteredList}
-  selectedMonth={selectedMonth}
-  selectedYear={selectedYear}
-  setSelectedMonth={setSelectedMonth}
-  setSelectedYear={setSelectedYear}
-  headerTitle={headerText} // Passando o título do header
+        show={showModal}
+        onClose={handleCloseModal}
+        filteredList={filteredList}
+        selectedMonth={selectedMonth}
+        selectedYear={selectedYear}
+        setSelectedMonth={setSelectedMonth}
+        setSelectedYear={setSelectedYear}
+        headerTitle={headerText} // Título dinâmico do cabeçalho
+      />
 
-/>
-
-
-
-      <Body>
+      <BodyStyled>
         <InfoArea
           currentMonth={currentMonth}
           onMonthChange={handleMonthChange}
           income={income}
           expense={expense}
         />
-       <InputArea onAdd={handleAddItem} dbName={dbName} />
+        <InputArea onAdd={handleAddItem} dbName={dbName} />
         {showGraphs ? (
           <Graphs items={filteredList} />
         ) : (
           <TableArea list={filteredList} onDelete={handleDeleteClick} />
         )}
-      </Body>
+      </BodyStyled>
 
       <ConfirmationModal 
         show={showConfirmationModal} 
@@ -226,7 +330,7 @@ const App = () => {
   );
 };
 
-// Estilização dos componentes
+// Estilização dos componentes com styled-components
 const Container = styled.div``;
 
 const LoadingContainer = styled.div`
@@ -242,7 +346,8 @@ const LoadingText = styled.h2`
   color: #333;
 `;
 
-const Header = styled.div`
+// Estilização do cabeçalho
+const HeaderStyled = styled.div`
   background: linear-gradient(135deg, #2c3e50, #34495e);
   width: 100%;
   height: auto;
@@ -253,18 +358,18 @@ const Header = styled.div`
   box-sizing: border-box;
 `;
 
-const HeaderContent = styled.div`
+const HeaderContentStyled = styled.div`
   display: flex;
   align-items: center;
 `;
 
-const Logo = styled.img`
+const LogoStyled = styled.img`
   width: 60px;
   height: 60px;
   margin-right: 10px;
 `;
 
-const HeaderText = styled.h1`
+const HeaderTextStyled = styled.h1`
   margin: 0;
   padding: 0;
   color: #FFF;
@@ -276,7 +381,7 @@ const HeaderText = styled.h1`
   }
 `;
 
-const ButtonsWrapper = styled.div`
+const ButtonsWrapperStyled = styled.div`
   display: flex;
   flex-direction: row;
 
@@ -286,7 +391,7 @@ const ButtonsWrapper = styled.div`
   }
 `;
 
-const ToggleButton = styled.button`
+const ToggleButtonStyled = styled.button`
   margin-right: 10px;
   padding: 10px 20px;
   background-color: #2980b9;
@@ -313,7 +418,7 @@ const ToggleButton = styled.button`
   }
 `;
 
-const LogoutButton = styled(ToggleButton)`
+const LogoutButtonStyled = styled(ToggleButtonStyled)`
   background-color: #dc3545;
 
   &:hover {
@@ -325,8 +430,41 @@ const LogoutButton = styled(ToggleButton)`
   }
 `;
 
-const Body = styled.div`
+const BodyStyled = styled.div`
   padding: 20px;
+`;
+
+/* Estilização do painel de seleção de igreja */
+const ChurchSelectionContainer = styled.div`
+  background: #f1f1f1;
+  padding: 15px;
+  margin: 10px 20px;
+  border-radius: 5px;
+  text-align: center;
+`;
+
+const SelectionTitle = styled.h3`
+  margin-bottom: 10px;
+`;
+
+const CurrentChurch = styled.p`
+  font-weight: bold;
+  margin-bottom: 10px;
+`;
+
+const ChurchButton = styled.button`
+  margin: 5px;
+  padding: 8px 16px;
+  background-color: #2980b9;
+  color: #FFF;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+
+  &:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+  }
 `;
 
 export default App;
