@@ -1,28 +1,73 @@
-# Expense-tracker
-<p align="center">
-  <img alt="Expense-tracker" src="github/preview.png" width="100%">
-</p>
+# Sistema Financeiro | Peniel Zona Norte
 
-## 💻 Projeto
+Este projeto é um sistema financeiro desenvolvido em **React** com **TypeScript** e **Firebase**, permitindo o gerenciamento de receitas e despesas. 
 
-Esta aplicação é fruto do Bootcamp TQI Fullstack Developer, bootcamp promovido pela TQI e pela Digital Innovation One. Neste projeto, foi requisitado a criação de uma
-aplicação em React que utilizasse os conceitos e ferramentas apresentados no Bootcamp, como: react hooks, componentização da aplicação e styled components. Para tanto, foi desenvolvida uma SPA de controle financeiro para cadastro de gastos e receitas.
+## 🚀 Funcionalidades
+- Adição de receitas e despesas.
+- Cálculo automático do saldo total.
+- Filtragem de transações por mês.
+- Exibição de dados em tabela.
+- Visualização de gráficos financeiros.
+- Interface responsiva para dispositivos móveis.
 
-## ⚡ Funcionalidades
+## 🛠 Tecnologias Utilizadas
+- **React** com **TypeScript**
+- **Styled Components** (para estilização)
+- **Firebase** (Realtime Database para armazenamento de dados)
 
-Principais funcionalidades da aplicação:
-- Cadastro de data do lançamento;
-- Cadastro de categoria do lançamento;
-- Cadastro de título do lançamento;
-- Cadastro de valor do lançamento;
-- Display com resumo das informações;
-- Filtros para o lançamentos;
-- Display com lançamentos filtrados;
+## 📁 Estrutura do Projeto
+```
+📂 src
+ ┣ 📂 components
+ ┃ ┣ 📜 InfoArea.tsx
+ ┃ ┣ 📜 InputArea.tsx
+ ┃ ┣ 📜 TableArea.tsx
+ ┃ ┣ 📜 Graphs.tsx
+ ┃ ┗ 📜 ToggleButton.tsx
+ ┣ 📂 helpers
+ ┃ ┗ 📜 dateFilter.ts
+ ┣ 📂 types
+ ┃ ┗ 📜 Item.ts
+ ┣ 📜 firebaseConfig.ts
+ ┣ 📜 App.tsx
+ ┗ 📜 index.tsx
+```
 
-## 🚀 Tecnologias
+## ⚙️ Configuração e Instalação
+1. Clone este repositório:
+   ```sh
+   git clone https://github.com/seu-usuario/sistema-financeiro.git
+   ```
+2. Acesse a pasta do projeto:
+   ```sh
+   cd sistema-financeiro
+   ```
+3. Instale as dependências:
+   ```sh
+   npm install
+   ```
+4. Configure o Firebase:
+   - Crie um projeto no Firebase.
+   - Adicione um banco de dados Realtime Database.
+   - No arquivo **firebaseConfig.ts**, insira suas credenciais do Firebase.
 
-Principais tecnologias utilizadas no projeto:
-- Linguagem JavaScript;
-- TypeScript;
-- React;
-- Styled Components.
+5. Inicie o projeto:
+   ```sh
+   npm start
+   ```
+
+## 📊 Como Usar
+1. Adicione receitas e despesas através do formulário.
+2. Utilize o seletor de meses para filtrar os dados.
+3. Clique no botão "Ver Gráficos" para visualizar os dados em formato gráfico.
+
+## 📌 Melhorias Futuras
+- Exportação de relatórios em PDF.
+- Implementação de autenticação de usuários.
+- Melhorias na interface gráfica.
+
+## 📄 Licença
+Este projeto está sob a licença **MIT**.
+
+---
+Desenvolvido por **Peniel Zona Norte** 🚀
